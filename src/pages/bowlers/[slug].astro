@@ -1,0 +1,285 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { bowlers } from '../../data/league';
+import { weekRecaps } from '../../data/recaps';
+import type { BowlerScore, WeekRecap } from '../../data/recaps';
+import type { Bowler } from '../../data/league';
+
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[\s,']+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function normalizedSlug(name: string): string {
+  return toSlug(name).split('-').sort().join('-');
+}
+
+interface BowlerWeek {
+  week: number;
+  date: string;
+  games: (number | null)[];
+  total: number;
+  avg: number;
+  hdcp: number;
+  absent: boolean;
+}
+
+export function getStaticPaths() {
+  function slugify(name: string): string {
+    return name.toLowerCase().replace(/[\s,']+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  // Collect all unique bowler names from recaps
+  const recapNames = new Set<string>();
+  for (const recap of weekRecaps) {
+    for (const match of recap.matches) {
+      for (const b of [...match.team1.bowlers, ...match.team2.bowlers]) {
+        recapNames.add(b.name);
+      }
+    }
+  }
+
+  // Generate paths for recap names + league bowler names (which may have different slug forms)
+  const paths: { params: { slug: string }; props: { bowlerName: string } }[] = [];
+  const seenSlugs = new Set<string>();
+
+  // First: all recap bowler slugs
+  for (const name of recapNames) {
+    const slug = slugify(name);
+    if (!seenSlugs.has(slug)) {
+      seenSlugs.add(slug);
+      paths.push({ params: { slug }, props: { bowlerName: name } });
+    }
+  }
+
+  // Second: league bowler slugs (may differ from recap names, e.g., "Srogonick, Casey" vs "Casey Srogonick")
+  for (const b of bowlers) {
+    const slug = slugify(b.name);
+    if (!seenSlugs.has(slug)) {
+      // Find matching recap name by checking if league name parts match any recap name
+      const recapName = Array.from(recapNames).find(rn => slugify(rn).split('-').sort().join('-') === slug.split('-').sort().join('-'));
+      seenSlugs.add(slug);
+      paths.push({ params: { slug }, props: { bowlerName: recapName ?? b.name } });
+    }
+  }
+
+  return paths;
+}
+
+const { bowlerName } = Astro.props;
+
+// Find bowler in league data (try exact match, then normalized slug match)
+const bowlerData: Bowler | undefined = bowlers.find(b => b.name === bowlerName)
+  || bowlers.find(b => normalizedSlug(b.name) === normalizedSlug(bowlerName));
+
+// Gather week-by-week data from recaps, sorted by week
+const weeks: BowlerWeek[] = [];
+const sortedRecaps = [...weekRecaps].sort((a, b) => a.week - b.week);
+
+for (const recap of sortedRecaps) {
+  for (const match of recap.matches) {
+    for (const b of [...match.team1.bowlers, ...match.team2.bowlers]) {
+      if (b.name === bowlerName) {
+        const absent = b.games.every(g => g === null);
+        weeks.push({
+          week: recap.week,
+          date: recap.date,
+          games: b.games,
+          total: b.total,
+          avg: b.avg,
+          hdcp: b.hdcp,
+          absent,
+        });
+      }
+    }
+  }
+}
+
+// Stats from league data or computed from recaps
+const name = bowlerName;
+const team = bowlerData?.team ?? '';
+const currentAvg = bowlerData?.average ?? 0;
+const totalGames = bowlerData?.games ?? 0;
+const totalPins = bowlerData?.pins ?? 0;
+const highGame = bowlerData?.highGame ?? 0;
+const highSeries = bowlerData?.highSeries ?? 0;
+const handicap = bowlerData?.handicap ?? 0;
+
+// --- Bar chart data: series per week (non-absent only) ---
+const barData = weeks.filter(w => !w.absent).map(w => ({ week: w.week, series: w.total }));
+const maxSeries = Math.max(...barData.map(d => d.series), 1);
+const barChartHeight = 200;
+const barMaxH = 160;
+const barWidth = 40;
+const barGap = 12;
+const barChartWidth = Math.max(barData.length * (barWidth + barGap) + barGap, 100);
+
+// --- Line chart data: running average ---
+let cumPins = 0;
+let cumGames = 0;
+const lineData: { week: number; avg: number }[] = [];
+for (const w of weeks) {
+  if (!w.absent) {
+    const gamesPlayed = w.games.filter(g => g !== null).length;
+    const pinsScored = w.games.filter(g => g !== null).reduce((s, g) => s + (g as number), 0);
+    cumPins += pinsScored;
+    cumGames += gamesPlayed;
+    lineData.push({ week: w.week, avg: Math.round(cumPins / cumGames) });
+  }
+}
+
+const lineChartHeight = 300;
+const lineChartPadding = { top: 30, right: 30, bottom: 40, left: 50 };
+const lineChartInnerW = Math.max(lineData.length * 60, 200);
+const lineChartWidth = lineChartInnerW + lineChartPadding.left + lineChartPadding.right;
+const lineMinAvg = lineData.length ? Math.min(...lineData.map(d => d.avg)) - 10 : 0;
+const lineMaxAvg = lineData.length ? Math.max(...lineData.map(d => d.avg)) + 10 : 200;
+const lineRange = lineMaxAvg - lineMinAvg || 1;
+
+function lineX(i: number): number {
+  if (lineData.length <= 1) return lineChartPadding.left + lineChartInnerW / 2;
+  return lineChartPadding.left + (i / (lineData.length - 1)) * lineChartInnerW;
+}
+function lineY(avg: number): number {
+  return lineChartPadding.top + (1 - (avg - lineMinAvg) / lineRange) * (lineChartHeight - lineChartPadding.top - lineChartPadding.bottom);
+}
+
+const linePoints = lineData.map((d, i) => `${lineX(i)},${lineY(d.avg)}`).join(' ');
+
+// Y-axis ticks for line chart
+const yTickCount = 5;
+const yTicks: number[] = [];
+for (let i = 0; i <= yTickCount; i++) {
+  yTicks.push(Math.round(lineMinAvg + (lineRange * i) / yTickCount));
+}
+---
+
+<Layout title={`${name} - Bowler Profile`} activeNav="/bowlers">
+  <!-- Back link -->
+  <a href="/bowlers" class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to Bowlers
+  </a>
+
+  <!-- Profile Header -->
+  <div class="bg-card border border-border rounded-lg p-6 mb-6">
+    <h2 class="text-2xl font-bold mb-1">{name}</h2>
+    {team && <p class="text-sm text-muted-foreground mb-4">{team}</p>}
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div>
+        <span class="text-xs text-muted-foreground block">Average</span>
+        <span class="text-xl font-bold font-mono text-primary">{currentAvg}</span>
+      </div>
+      <div>
+        <span class="text-xs text-muted-foreground block">Games</span>
+        <span class="text-xl font-bold font-mono">{totalGames}</span>
+      </div>
+      <div>
+        <span class="text-xs text-muted-foreground block">Total Pins</span>
+        <span class="text-xl font-bold font-mono">{totalPins.toLocaleString()}</span>
+      </div>
+      <div>
+        <span class="text-xs text-muted-foreground block">Handicap</span>
+        <span class="text-xl font-bold font-mono">{handicap}</span>
+      </div>
+      <div>
+        <span class="text-xs text-muted-foreground block">High Game</span>
+        <span class="text-xl font-bold font-mono">{highGame}</span>
+      </div>
+      <div>
+        <span class="text-xs text-muted-foreground block">High Series</span>
+        <span class="text-xl font-bold font-mono">{highSeries}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week-by-Week Scores -->
+  <div class="bg-card border border-border rounded-lg overflow-x-auto mb-6">
+    <h3 class="text-lg font-semibold px-4 pt-4 pb-2">Week-by-Week Scores</h3>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+          <th class="text-left px-4 py-2">Week</th>
+          <th class="text-left px-4 py-2">Date</th>
+          <th class="text-center px-4 py-2">Game 1</th>
+          <th class="text-center px-4 py-2">Game 2</th>
+          <th class="text-center px-4 py-2">Game 3</th>
+          <th class="text-right px-4 py-2">Series</th>
+        </tr>
+      </thead>
+      <tbody>
+        {weeks.map((w) => (
+          <tr class:list={["border-b border-border/50", w.absent && "opacity-50"]}>
+            <td class="px-4 py-2 font-mono">{w.week}</td>
+            <td class="px-4 py-2 text-muted-foreground">{w.date}</td>
+            <td class="px-4 py-2 text-center font-mono">
+              {w.games[0] !== null ? w.games[0] : <span class="text-muted-foreground italic">abs</span>}
+            </td>
+            <td class="px-4 py-2 text-center font-mono">
+              {w.games[1] !== null ? w.games[1] : <span class="text-muted-foreground italic">abs</span>}
+            </td>
+            <td class="px-4 py-2 text-center font-mono">
+              {w.games[2] !== null ? w.games[2] : <span class="text-muted-foreground italic">abs</span>}
+            </td>
+            <td class="px-4 py-2 text-right font-mono font-semibold">
+              {w.absent ? <span class="text-muted-foreground italic">absent</span> : w.total}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Bar Chart: Series by Week -->
+    {barData.length > 0 && (
+      <div class="bg-card border border-border rounded-lg p-4">
+        <h3 class="text-lg font-semibold mb-3">Series by Week</h3>
+        <div class="overflow-x-auto">
+          <svg width={barChartWidth} height={barChartHeight} class="mx-auto" role="img" aria-label="Bar chart of series totals by week">
+            {barData.map((d, i) => {
+              const barH = (d.series / maxSeries) * barMaxH;
+              const x = barGap + i * (barWidth + barGap);
+              const y = barChartHeight - 24 - barH;
+              return (
+                <g>
+                  <rect x={x} y={y} width={barWidth} height={barH} fill="#e11d48" rx="3" />
+                  <text x={x + barWidth / 2} y={y - 4} text-anchor="middle" fill="#fafafa" font-size="11" font-family="monospace">{d.series}</text>
+                  <text x={x + barWidth / 2} y={barChartHeight - 6} text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="monospace">W{d.week}</text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+    )}
+
+    <!-- Line Chart: Running Average -->
+    {lineData.length > 1 && (
+      <div class="bg-card border border-border rounded-lg p-4">
+        <h3 class="text-lg font-semibold mb-3">Running Average</h3>
+        <div class="overflow-x-auto">
+          <svg width={lineChartWidth} height={lineChartHeight} class="mx-auto" role="img" aria-label="Line chart of running average over weeks">
+            {/* Y-axis grid lines and labels */}
+            {yTicks.map((tick) => (
+              <g>
+                <line x1={lineChartPadding.left} y1={lineY(tick)} x2={lineChartWidth - lineChartPadding.right} y2={lineY(tick)} stroke="#27272a" stroke-width="1" />
+                <text x={lineChartPadding.left - 8} y={lineY(tick) + 4} text-anchor="end" fill="#a1a1aa" font-size="11" font-family="monospace">{tick}</text>
+              </g>
+            ))}
+            {/* Line */}
+            <polyline points={linePoints} fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+            {/* Dots and labels */}
+            {lineData.map((d, i) => (
+              <g>
+                <circle cx={lineX(i)} cy={lineY(d.avg)} r="4" fill="#22c55e" />
+                <text x={lineX(i)} y={lineY(d.avg) - 10} text-anchor="middle" fill="#fafafa" font-size="11" font-family="monospace">{d.avg}</text>
+                <text x={lineX(i)} y={lineChartHeight - lineChartPadding.bottom + 18} text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="monospace">W{d.week}</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>

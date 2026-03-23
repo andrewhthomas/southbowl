@@ -1,0 +1,170 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { weekRecaps } from '../../data/recaps';
+import type { TeamScore } from '../../data/recaps';
+
+export function getStaticPaths() {
+  return weekRecaps.map(r => ({ params: { week: r.week.toString() } }));
+}
+
+const { week } = Astro.params;
+const recap = weekRecaps.find(r => r.week === Number(week))!;
+
+function gameDisplay(g: number | null, avg: number) {
+  if (g === null) return { val: avg.toString(), absent: true };
+  return { val: g.toString(), absent: false };
+}
+
+function teamWonGame(t1: TeamScore, t2: TeamScore, gameIdx: number): 'team1' | 'team2' | 'tie' {
+  if (t1.totalByGame[gameIdx] > t2.totalByGame[gameIdx]) return 'team1';
+  if (t2.totalByGame[gameIdx] > t1.totalByGame[gameIdx]) return 'team2';
+  return 'tie';
+}
+---
+
+<Layout title={`Week ${week} Recap`} activeNav="/schedule">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold">Week {week} Recap</h2>
+      <p class="text-sm text-muted-foreground">{recap.date}</p>
+    </div>
+    <a href="/schedule" class="text-sm text-primary hover:underline">&larr; Schedule</a>
+  </div>
+
+  <div class="space-y-8">
+    {recap.matches.map((match) => {
+      const t1 = match.team1;
+      const t2 = match.team2;
+      const t1Won = t1.pointsWon > t2.pointsWon;
+      const t2Won = t2.pointsWon > t1.pointsWon;
+
+      return (
+        <div class="bg-card border border-border rounded-lg overflow-hidden">
+          {/* Match header */}
+          <div class="px-4 py-3 border-b border-border bg-secondary/30">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-muted-foreground">Lanes {match.lanes[0]}-{match.lanes[1]}</span>
+              <div class="flex items-center gap-4">
+                <span class:list={['font-semibold', t1Won && 'text-primary']}>
+                  {t1.name}
+                </span>
+                <span class="text-xs bg-secondary px-2 py-1 rounded font-mono font-bold">
+                  {t1.pointsWon} - {t2.pointsWon}
+                </span>
+                <span class:list={['font-semibold', t2Won && 'text-primary']}>
+                  {t2.name}
+                </span>
+              </div>
+              <span class="text-xs text-muted-foreground">
+                {t1.grandTotal} - {t2.grandTotal}
+              </span>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border">
+            {/* Team 1 */}
+            {[t1, t2].map((team, teamIdx) => {
+              const opponent = teamIdx === 0 ? t2 : t1;
+              const isWinner = team.pointsWon > opponent.pointsWon;
+
+              return (
+                <div class="overflow-x-auto">
+                  <div class="px-4 py-2 border-b border-border/50 flex items-center justify-between">
+                    <span class:list={['text-sm font-semibold', isWinner && 'text-primary']}>
+                      #{team.num} {team.name}
+                    </span>
+                    <span class:list={[
+                      'text-xs font-bold px-2 py-0.5 rounded',
+                      isWinner ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground',
+                    ]}>
+                      {team.pointsWon} pts
+                    </span>
+                  </div>
+                  <table class="w-full text-xs">
+                    <thead>
+                      <tr class="border-b border-border/50 text-muted-foreground uppercase">
+                        <th class="text-left px-3 py-1.5">Bowler</th>
+                        <th class="text-right px-2 py-1.5 w-10">Avg</th>
+                        <th class="text-right px-2 py-1.5 w-10">Hcp</th>
+                        <th class="text-right px-2 py-1.5 w-10">Gm1</th>
+                        <th class="text-right px-2 py-1.5 w-10">Gm2</th>
+                        <th class="text-right px-2 py-1.5 w-10">Gm3</th>
+                        <th class="text-right px-2 py-1.5 w-12">Tot</th>
+                        <th class="text-right px-3 py-1.5 w-12">+Hcp</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {team.bowlers.map((b) => {
+                        const g1 = gameDisplay(b.games[0], b.avg);
+                        const g2 = gameDisplay(b.games[1], b.avg);
+                        const g3 = gameDisplay(b.games[2], b.avg);
+                        return (
+                          <tr class="border-b border-border/30 hover:bg-secondary/20">
+                            <td class="px-3 py-1.5 font-medium">{b.name}</td>
+                            <td class="px-2 py-1.5 text-right font-mono text-muted-foreground">{b.avg}</td>
+                            <td class="px-2 py-1.5 text-right font-mono text-muted-foreground">{b.hdcp}</td>
+                            <td class:list={['px-2 py-1.5 text-right font-mono', g1.absent && 'text-muted-foreground italic']}>
+                              {g1.absent && 'a'}{g1.val}
+                            </td>
+                            <td class:list={['px-2 py-1.5 text-right font-mono', g2.absent && 'text-muted-foreground italic']}>
+                              {g2.absent && 'a'}{g2.val}
+                            </td>
+                            <td class:list={['px-2 py-1.5 text-right font-mono', g3.absent && 'text-muted-foreground italic']}>
+                              {g3.absent && 'a'}{g3.val}
+                            </td>
+                            <td class="px-2 py-1.5 text-right font-mono font-medium">{b.total}</td>
+                            <td class="px-3 py-1.5 text-right font-mono font-medium">{b.hdcpTotal}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr class="border-t border-border text-muted-foreground">
+                        <td class="px-3 py-1.5" colspan="3">Scratch</td>
+                        {team.scratchByGame.map((g, gi) => {
+                          const won = teamIdx === 0
+                            ? teamWonGame(t1, t2, gi) === 'team1'
+                            : teamWonGame(t1, t2, gi) === 'team2';
+                          return (
+                            <td class:list={['px-2 py-1.5 text-right font-mono', won && 'text-foreground font-bold']}>
+                              {g}
+                            </td>
+                          );
+                        })}
+                        <td class="px-2 py-1.5 text-right font-mono">{team.scratchTotal}</td>
+                        <td class="px-3 py-1.5"></td>
+                      </tr>
+                      <tr class="text-muted-foreground">
+                        <td class="px-3 py-1.5" colspan="3">Handicap</td>
+                        {team.hdcpByGame.map((g) => (
+                          <td class="px-2 py-1.5 text-right font-mono">{g}</td>
+                        ))}
+                        <td class="px-2 py-1.5"></td>
+                        <td class="px-3 py-1.5 text-right font-mono">{team.hdcpTotal}</td>
+                      </tr>
+                      <tr class="border-t border-border font-medium">
+                        <td class="px-3 py-1.5" colspan="3">Total</td>
+                        {team.totalByGame.map((g, gi) => {
+                          const won = teamIdx === 0
+                            ? teamWonGame(t1, t2, gi) === 'team1'
+                            : teamWonGame(t1, t2, gi) === 'team2';
+                          return (
+                            <td class:list={['px-2 py-1.5 text-right font-mono', won && 'text-primary']}>
+                              {g}
+                            </td>
+                          );
+                        })}
+                        <td class="px-2 py-1.5"></td>
+                        <td class="px-3 py-1.5 text-right font-mono font-bold">{team.grandTotal}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</Layout>

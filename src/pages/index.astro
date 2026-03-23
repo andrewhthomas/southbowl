@@ -1,0 +1,156 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { league, standings, topBowlers, schedule } from '../data/league';
+
+const topHalf = standings.slice(0, 8);
+const latestWeek = [...schedule].reverse().find(w =>
+  w.matches.length > 0 && w.matches.some(m => m.score1 !== 0 || m.score2 !== 0)
+) ?? schedule[0];
+const weeksBowled = schedule.filter(w =>
+  w.matches.length > 0 && w.matches.some(m => m.score1 !== 0 || m.score2 !== 0)
+).length;
+const topAvg = topBowlers.highAverage.slice(0, 5);
+const topGame = topBowlers.highGame.slice(0, 5);
+---
+
+<Layout title="Dashboard" activeNav="/">
+  <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+
+  <!-- Stats cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-card border border-border rounded-lg p-4">
+      <p class="text-xs text-muted-foreground uppercase tracking-wide">Teams</p>
+      <p class="text-2xl font-bold mt-1">{standings.length}</p>
+    </div>
+    <div class="bg-card border border-border rounded-lg p-4">
+      <p class="text-xs text-muted-foreground uppercase tracking-wide">Weeks Bowled</p>
+      <p class="text-2xl font-bold mt-1">{weeksBowled} <span class="text-sm font-normal text-muted-foreground">of 12</span></p>
+    </div>
+    <div class="bg-card border border-border rounded-lg p-4">
+      <p class="text-xs text-muted-foreground uppercase tracking-wide">League Leader</p>
+      <p class="text-2xl font-bold mt-1 text-primary">{standings[0].name}</p>
+    </div>
+    <div class="bg-card border border-border rounded-lg p-4">
+      <p class="text-xs text-muted-foreground uppercase tracking-wide">Top Average</p>
+      <p class="text-2xl font-bold mt-1">{topAvg[0].average}</p>
+      <p class="text-xs text-muted-foreground">{topAvg[0].name}</p>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-8">
+    <!-- Top 5 Standings -->
+    <div class="bg-card border border-border rounded-lg">
+      <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+        <h3 class="font-semibold">Top Half Standings</h3>
+        <a href="/standings" class="text-xs text-primary hover:underline">View all</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+              <th class="text-left px-4 py-2">#</th>
+              <th class="text-left px-4 py-2">Team</th>
+              <th class="text-center px-4 py-2">W</th>
+              <th class="text-center px-4 py-2">L</th>
+              <th class="text-right px-4 py-2">Pct</th>
+            </tr>
+          </thead>
+          <tbody>
+            {topHalf.map((team) => (
+              <tr class="border-b border-border/50 hover:bg-secondary/30">
+                <td class="px-4 py-2.5 text-muted-foreground">{team.rank}</td>
+                <td class="px-4 py-2.5 font-medium">{team.name}</td>
+                <td class="px-4 py-2.5 text-center">{team.wins}</td>
+                <td class="px-4 py-2.5 text-center">{team.losses}</td>
+                <td class="px-4 py-2.5 text-right">{Math.round(team.pct * 100)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Latest Results -->
+    <div class="bg-card border border-border rounded-lg">
+      <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+        <h3 class="font-semibold">Week {latestWeek.week} Results ({latestWeek.date})</h3>
+        <a href="/schedule" class="text-xs text-primary hover:underline">Full schedule</a>
+      </div>
+      <div class="divide-y divide-border/50">
+        {latestWeek.matches.map((m) => (
+          <div class="px-4 py-2.5 flex items-center text-sm">
+            <div class="flex-1">
+              <span class:list={['font-medium', m.wins1 > m.wins2 && 'text-primary']}>{m.team1}</span>
+              <span class="text-muted-foreground ml-2">{m.score1}</span>
+            </div>
+            <span class="text-xs text-muted-foreground mx-2">{m.wins1}-{m.wins2}</span>
+            <div class="flex-1 text-right">
+              <span class="text-muted-foreground mr-2">{m.score2}</span>
+              <span class:list={['font-medium', m.wins2 > m.wins1 && 'text-primary']}>{m.team2}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Top Averages -->
+    <div class="bg-card border border-border rounded-lg">
+      <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+        <h3 class="font-semibold">Top Averages</h3>
+        <a href="/statistics" class="text-xs text-primary hover:underline">All stats</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+              <th class="text-left px-4 py-2">#</th>
+              <th class="text-left px-4 py-2">Bowler</th>
+              <th class="text-left px-4 py-2">Team</th>
+              <th class="text-right px-4 py-2">Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            {topAvg.map((b, i) => (
+              <tr class="border-b border-border/50 hover:bg-secondary/30">
+                <td class="px-4 py-2.5 text-muted-foreground">{i + 1}</td>
+                <td class="px-4 py-2.5 font-medium">{b.name}</td>
+                <td class="px-4 py-2.5 text-muted-foreground text-xs">{b.team}</td>
+                <td class="px-4 py-2.5 text-right font-mono">{b.average}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top High Games -->
+    <div class="bg-card border border-border rounded-lg">
+      <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+        <h3 class="font-semibold">Top High Games</h3>
+        <a href="/statistics" class="text-xs text-primary hover:underline">All stats</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+              <th class="text-left px-4 py-2">#</th>
+              <th class="text-left px-4 py-2">Bowler</th>
+              <th class="text-left px-4 py-2">Team</th>
+              <th class="text-right px-4 py-2">Game</th>
+            </tr>
+          </thead>
+          <tbody>
+            {topGame.map((b, i) => (
+              <tr class="border-b border-border/50 hover:bg-secondary/30">
+                <td class="px-4 py-2.5 text-muted-foreground">{i + 1}</td>
+                <td class="px-4 py-2.5 font-medium">{b.name}</td>
+                <td class="px-4 py-2.5 text-muted-foreground text-xs">{b.team}</td>
+                <td class="px-4 py-2.5 text-right font-mono">{b.highGame}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>

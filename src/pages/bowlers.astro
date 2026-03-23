@@ -1,0 +1,95 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { bowlers } from '../data/league';
+
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[\s,\']+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+const sorted = bowlers.slice().sort((a, b) => b.average - a.average);
+
+const profileIcon = `<svg class="w-3.5 h-3.5 inline-block opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>`;
+---
+
+<Layout title="Bowlers" activeNav="/bowlers">
+  <h2 class="text-2xl font-bold mb-6">Bowler List</h2>
+
+  <!-- Desktop table -->
+  <div class="hidden md:block bg-card border border-border rounded-lg overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+          <th class="text-left px-4 py-3">Bowler</th>
+          <th class="text-left px-4 py-3">Team</th>
+          <th class="text-center px-4 py-3">Games</th>
+          <th class="text-right px-4 py-3">Pins</th>
+          <th class="text-right px-4 py-3">Average</th>
+          <th class="text-right px-4 py-3">High Game</th>
+          <th class="text-right px-4 py-3">High Series</th>
+          <th class="text-right px-4 py-3">Handicap</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sorted.map((b) => (
+          <tr class="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+            <td class="px-4 py-3 font-medium"><a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 hover:text-primary transition-colors">{b.name}<Fragment set:html={profileIcon} /></a></td>
+            <td class="px-4 py-3 text-muted-foreground text-xs">{b.team}</td>
+            <td class="px-4 py-3 text-center font-mono">{b.games}</td>
+            <td class="px-4 py-3 text-right font-mono">{b.pins.toLocaleString()}</td>
+            <td class="px-4 py-3 text-right">
+              <span class:list={[
+                'inline-block px-2 py-0.5 rounded text-xs font-bold font-mono',
+                b.average >= 180 && 'bg-green-500/20 text-green-400',
+                b.average >= 150 && b.average < 180 && 'bg-blue-500/20 text-blue-400',
+                b.average < 150 && 'bg-muted text-muted-foreground',
+              ]}>
+                {b.average}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right font-mono">{b.highGame}</td>
+            <td class="px-4 py-3 text-right font-mono">{b.highSeries}</td>
+            <td class="px-4 py-3 text-right font-mono text-muted-foreground">{b.handicap}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="md:hidden space-y-2">
+    {sorted.map((b) => (
+      <div class="bg-card border border-border rounded-lg px-4 py-3">
+        <div class="flex items-center justify-between mb-1">
+          <a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 font-medium text-sm hover:text-primary transition-colors">{b.name}<Fragment set:html={profileIcon} /></a>
+          <span class:list={[
+            'inline-block px-2 py-0.5 rounded text-xs font-bold font-mono',
+            b.average >= 180 && 'bg-green-500/20 text-green-400',
+            b.average >= 150 && b.average < 180 && 'bg-blue-500/20 text-blue-400',
+            b.average < 150 && 'bg-muted text-muted-foreground',
+          ]}>
+            {b.average} avg
+          </span>
+        </div>
+        <p class="text-xs text-muted-foreground mb-2">{b.team}</p>
+        <div class="grid grid-cols-4 gap-2 text-xs">
+          <div>
+            <span class="text-muted-foreground block">Gm</span>
+            <span class="font-mono">{b.games}</span>
+          </div>
+          <div>
+            <span class="text-muted-foreground block">HG</span>
+            <span class="font-mono">{b.highGame}</span>
+          </div>
+          <div>
+            <span class="text-muted-foreground block">HS</span>
+            <span class="font-mono">{b.highSeries}</span>
+          </div>
+          <div>
+            <span class="text-muted-foreground block">Hcp</span>
+            <span class="font-mono">{b.handicap}</span>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</Layout>

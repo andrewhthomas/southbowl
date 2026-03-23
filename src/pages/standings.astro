@@ -1,0 +1,126 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { standings } from '../data/league';
+
+function fmt(n: number) {
+  return Number.isInteger(n) ? n.toString() : n.toFixed(1);
+}
+---
+
+<Layout title="Standings" activeNav="/standings">
+  <h2 class="text-2xl font-bold mb-6">Standings</h2>
+
+  <!-- Desktop table -->
+  <div class="hidden md:block bg-card border border-border rounded-lg overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+          <th class="text-left px-4 py-3">Place</th>
+          <th class="text-left px-4 py-3">Team</th>
+          <th class="text-center px-4 py-3">Won</th>
+          <th class="text-center px-4 py-3">Lost</th>
+          <th class="text-right px-4 py-3">% Won</th>
+          <th class="text-right px-4 py-3">Avg</th>
+          <th class="text-right px-4 py-3">Pins</th>
+          <th class="text-right px-4 py-3">HSG</th>
+          <th class="text-right px-4 py-3">HSS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {standings.map((team, i) => (
+          <tr class:list={[
+            'border-b border-border/50 hover:bg-secondary/30 transition-colors',
+            i < 3 && 'bg-primary/5',
+          ]}>
+            <td class="px-4 py-3">
+              <span class:list={[
+                'inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold',
+                i === 0 && 'bg-yellow-500/20 text-yellow-400',
+                i === 1 && 'bg-gray-400/20 text-gray-300',
+                i === 2 && 'bg-amber-700/20 text-amber-500',
+                i > 2 && 'text-muted-foreground',
+              ]}>
+                {team.rank}
+              </span>
+            </td>
+            <td class="px-4 py-3 font-medium">{team.name}</td>
+            <td class="px-4 py-3 text-center font-mono">{fmt(team.wins)}</td>
+            <td class="px-4 py-3 text-center font-mono">{fmt(team.losses)}</td>
+            <td class="px-4 py-3 text-right font-mono">{Math.round(team.pct * 100)} %</td>
+            <td class="px-4 py-3 text-right font-mono">{team.avg}</td>
+            <td class="px-4 py-3 text-right font-mono">{team.pinfall.toLocaleString()}</td>
+            <td class="px-4 py-3 text-right font-mono">{team.highGame}</td>
+            <td class="px-4 py-3 text-right font-mono">{team.highSeries.toLocaleString()}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="md:hidden space-y-3">
+    {standings.map((team, i) => (
+      <div class:list={[
+        'bg-card border border-border rounded-lg p-4',
+        i < 3 && 'border-primary/30',
+      ]}>
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class:list={[
+              'inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold',
+              i === 0 && 'bg-yellow-500/20 text-yellow-400',
+              i === 1 && 'bg-gray-400/20 text-gray-300',
+              i === 2 && 'bg-amber-700/20 text-amber-500',
+              i > 2 && 'text-muted-foreground',
+            ]}>
+              {team.rank}
+            </span>
+            <span class="font-semibold text-sm">{team.name}</span>
+          </div>
+          <span class="text-sm font-mono font-bold">{Math.round(team.pct * 100)}%</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-xs">
+          <div>
+            <span class="text-muted-foreground block">W-L</span>
+            <span class="font-mono font-medium">{fmt(team.wins)}-{fmt(team.losses)}</span>
+          </div>
+          <div>
+            <span class="text-muted-foreground block">Avg</span>
+            <span class="font-mono font-medium">{team.avg}</span>
+          </div>
+          <div>
+            <span class="text-muted-foreground block">HSG</span>
+            <span class="font-mono font-medium">{team.highGame}</span>
+          </div>
+          <div>
+            <span class="text-muted-foreground block">HSS</span>
+            <span class="font-mono font-medium">{team.highSeries.toLocaleString()}</span>
+          </div>
+        </div>
+        <div class="mt-2 bg-secondary rounded-full h-2 overflow-hidden">
+          <div class="bg-primary h-full rounded-full" style={`width: ${team.pct * 100}%`}></div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Win percentage bar chart (desktop only) -->
+  <div class="mt-8 bg-card border border-border rounded-lg p-4 hidden md:block">
+    <h3 class="font-semibold mb-4">Win Percentage</h3>
+    <div class="space-y-2">
+      {standings.map((team) => (
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-48 truncate text-right text-muted-foreground">{team.name}</span>
+          <div class="flex-1 bg-secondary rounded-full h-5 overflow-hidden">
+            <div
+              class="bg-primary h-full rounded-full transition-all flex items-center justify-end pr-2"
+              style={`width: ${team.pct * 100}%`}
+            >
+              <span class="text-[10px] font-mono text-primary-foreground">{Math.round(team.pct * 100)}%</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,161 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { schedule } from '../data/league';
+import { weekRecaps } from '../data/recaps';
+
+const weeks = [...schedule];
+const recapWeeks = new Set(weekRecaps.map(r => r.week));
+
+function isFuture(m: { score1: number; score2: number; wins1: number; wins2: number }) {
+  return m.score1 === 0 && m.score2 === 0 && m.wins1 === 0 && m.wins2 === 0;
+}
+
+function isWeekFuture(week: typeof schedule[number]) {
+  return week.matches.length === 0 || week.matches.every(isFuture);
+}
+
+// Find the next upcoming Thursday (first future week), fallback to last week
+const nextUpcoming = weeks.find(w => isWeekFuture(w));
+const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
+---
+
+<Layout title="Schedule & Results" activeNav="/schedule">
+  <h2 class="text-2xl font-bold mb-6">Schedule & Results</h2>
+
+  <div class="flex items-center gap-3 mb-6">
+    <select
+      id="week-select"
+      class="bg-secondary border border-border rounded-md px-3 py-2 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+    >
+      {weeks.map((week) => (
+        <option
+          value={week.week}
+          selected={week.week === defaultWeek}
+        >
+          Week {week.week} — {week.date}{isWeekFuture(week) ? ' (Upcoming)' : ''}
+        </option>
+      ))}
+    </select>
+    <button
+      id="show-all-btn"
+      class="bg-secondary border border-border rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
+    >
+      Show All
+    </button>
+  </div>
+
+  <div id="weeks-container" class="space-y-6">
+    {weeks.map((week) => {
+      const allFuture = isWeekFuture(week);
+      return (
+        <div
+          class:list={['week-card bg-card border border-border rounded-lg', allFuture && 'opacity-75']}
+          data-week={week.week}
+        >
+          <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold">Week {week.week}</h3>
+              {allFuture && <span class="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded uppercase font-bold">Upcoming</span>}
+            </div>
+            <div class="flex items-center gap-3">
+              {recapWeeks.has(week.week) && (
+                <a href={`/recaps/${week.week}`} class="text-xs text-primary hover:underline font-medium">
+                  Full Scoresheet &rarr;
+                </a>
+              )}
+              <span class="text-sm text-muted-foreground">{week.date}</span>
+            </div>
+          </div>
+          {week.matches.length === 0 ? (
+            <div class="px-4 py-4 text-sm text-muted-foreground">
+              Position Round — matchups determined by standings
+            </div>
+          ) : (
+            <div class="divide-y divide-border/50">
+              {week.matches.map((m) => {
+                const future = isFuture(m);
+                return (
+                  <div class="px-4 py-3 flex items-center text-sm">
+                    {m.lanes && (
+                      <span class="text-[10px] text-muted-foreground font-mono w-10 shrink-0">L{m.lanes[0]}-{m.lanes[1]}</span>
+                    )}
+                    <div class="flex-1 flex items-center gap-2">
+                      <span class:list={[
+                        'font-medium',
+                        !future && m.wins1 > m.wins2 ? 'text-foreground' : 'text-muted-foreground',
+                      ]}>
+                        {m.team1}
+                      </span>
+                      {!future && m.wins1 > m.wins2 && <span class="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold">W</span>}
+                    </div>
+                    {future ? (
+                      <span class="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">vs</span>
+                    ) : (
+                      <div class="flex items-center gap-3 font-mono text-xs">
+                        <span class:list={[m.wins1 > m.wins2 ? 'text-foreground font-bold' : 'text-muted-foreground']}>
+                          {m.score1}
+                        </span>
+                        <span class="text-muted-foreground bg-secondary px-2 py-1 rounded">
+                          {m.wins1}-{m.wins2}
+                        </span>
+                        <span class:list={[m.wins2 > m.wins1 ? 'text-foreground font-bold' : 'text-muted-foreground']}>
+                          {m.score2}
+                        </span>
+                      </div>
+                    )}
+                    <div class="flex-1 flex items-center gap-2 justify-end">
+                      {!future && m.wins2 > m.wins1 && <span class="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold">W</span>}
+                      <span class:list={[
+                        'font-medium',
+                        !future && m.wins2 > m.wins1 ? 'text-foreground' : 'text-muted-foreground',
+                      ]}>
+                        {m.team2}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+
+  <script define:vars={{ defaultWeek }}>
+    const select = document.getElementById('week-select');
+    const showAllBtn = document.getElementById('show-all-btn');
+    const cards = document.querySelectorAll('.week-card');
+    let showingAll = false;
+
+    function showWeek(weekNum) {
+      cards.forEach(card => {
+        card.style.display = Number(card.dataset.week) === weekNum ? '' : 'none';
+      });
+    }
+
+    function showAll() {
+      cards.forEach(card => { card.style.display = ''; });
+    }
+
+    // Default: show only the selected week
+    showWeek(defaultWeek);
+
+    select.addEventListener('change', () => {
+      showingAll = false;
+      showAllBtn.textContent = 'Show All';
+      showWeek(Number(select.value));
+    });
+
+    showAllBtn.addEventListener('click', () => {
+      showingAll = !showingAll;
+      if (showingAll) {
+        showAll();
+        showAllBtn.textContent = 'Show One';
+      } else {
+        showWeek(Number(select.value));
+        showAllBtn.textContent = 'Show All';
+      }
+    });
+  </script>
+</Layout>

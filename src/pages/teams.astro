@@ -1,0 +1,86 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { standings, bowlers, teamRosters } from '../data/league';
+
+function fmt(n: number) {
+  return Number.isInteger(n) ? n.toString() : n.toFixed(1);
+}
+
+const teamsByNum = standings.slice().sort((a, b) => a.num - b.num);
+---
+
+<Layout title="Teams" activeNav="/teams">
+  <h2 class="text-2xl font-bold mb-6">Teams</h2>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    {teamsByNum.map((team) => {
+      const roster = teamRosters[team.name] ?? [];
+      const rosterWithStats = roster.map(name => {
+        const stats = bowlers.find(b => b.name === name);
+        return { name, stats };
+      });
+      // Sort: bowlers with games first (by avg desc), then inactive
+      rosterWithStats.sort((a, b) => {
+        if (a.stats && a.stats.games > 0 && (!b.stats || b.stats.games === 0)) return -1;
+        if (b.stats && b.stats.games > 0 && (!a.stats || a.stats.games === 0)) return 1;
+        if (a.stats && b.stats) return b.stats.average - a.stats.average;
+        return 0;
+      });
+
+      return (
+        <div class="bg-card border border-border rounded-lg">
+          <div class="px-4 py-3 border-b border-border">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">{team.name}</h3>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-muted-foreground">Team #{team.num}</span>
+                <span class="text-xs bg-secondary px-2 py-1 rounded font-mono">
+                  #{team.rank}
+                </span>
+              </div>
+            </div>
+            <div class="flex gap-4 mt-2 text-xs text-muted-foreground">
+              <span>{fmt(team.wins)}W - {fmt(team.losses)}L</span>
+              <span>{Math.round(team.pct * 100)}%</span>
+              <span>Avg: {team.avg}</span>
+              <span>HSG: {team.highGame}</span>
+            </div>
+          </div>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-muted-foreground text-xs uppercase border-b border-border/50">
+                <th class="text-left px-4 py-2">Bowler</th>
+                <th class="text-right px-4 py-2">Avg</th>
+                <th class="text-right px-4 py-2">Gm</th>
+                <th class="text-right px-4 py-2">HG</th>
+                <th class="text-right px-4 py-2">HS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rosterWithStats.map(({ name, stats }) => (
+                <tr class="border-b border-border/30 hover:bg-secondary/30">
+                  <td class="px-4 py-2">{name}</td>
+                  {stats && stats.games > 0 ? (
+                    <>
+                      <td class="px-4 py-2 text-right font-mono">{stats.average}</td>
+                      <td class="px-4 py-2 text-right font-mono text-muted-foreground">{stats.games}</td>
+                      <td class="px-4 py-2 text-right font-mono">{stats.highGame}</td>
+                      <td class="px-4 py-2 text-right font-mono">{stats.highSeries}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td class="px-4 py-2 text-right text-muted-foreground text-xs">--</td>
+                      <td class="px-4 py-2 text-right text-muted-foreground text-xs">0</td>
+                      <td class="px-4 py-2 text-right text-muted-foreground text-xs">--</td>
+                      <td class="px-4 py-2 text-right text-muted-foreground text-xs">--</td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    })}
+  </div>
+</Layout>

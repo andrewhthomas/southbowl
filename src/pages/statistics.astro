@@ -1,0 +1,183 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { topBowlers } from '../data/league';
+
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[\s,']+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+const profileIcon = `<svg class="w-3.5 h-3.5 inline-block opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>`;
+
+const chevron = `<svg class="w-5 h-5 text-muted-foreground transition-transform duration-200 lg:hidden stats-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`;
+---
+
+<Layout title="Statistics" activeNav="/statistics">
+  <h2 class="text-2xl font-bold mb-6">Statistics</h2>
+
+  <div class="grid lg:grid-cols-2 gap-8">
+    <!-- High Average -->
+    <details class="bg-card border border-border rounded-lg stats-panel group">
+      <summary class="px-4 py-3 border-b border-border flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
+        <h3 class="font-semibold">Highest Averages</h3>
+        <Fragment set:html={chevron} />
+      </summary>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+            <th class="text-left px-3 sm:px-4 py-2">#</th>
+            <th class="text-left px-3 sm:px-4 py-2">Bowler</th>
+            <th class="text-left px-3 sm:px-4 py-2 hidden sm:table-cell">Team</th>
+            <th class="text-right px-3 sm:px-4 py-2">Avg</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topBowlers.highAverage.map((b, i) => (
+            <tr class="border-b border-border/50 hover:bg-secondary/30">
+              <td class="px-3 sm:px-4 py-2.5 text-muted-foreground">{i + 1}</td>
+              <td class="px-3 sm:px-4 py-2.5">
+                <a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 font-medium hover:text-primary transition-colors">
+                  {b.name}<Fragment set:html={profileIcon} />
+                </a>
+                <span class="block sm:hidden text-xs text-muted-foreground">{b.team}</span>
+              </td>
+              <td class="px-3 sm:px-4 py-2.5 text-muted-foreground text-xs hidden sm:table-cell">{b.team}</td>
+              <td class="px-3 sm:px-4 py-2.5 text-right font-mono font-bold">{b.average}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
+
+    <!-- High Game -->
+    <details class="bg-card border border-border rounded-lg stats-panel group">
+      <summary class="px-4 py-3 border-b border-border flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
+        <h3 class="font-semibold">Highest Games</h3>
+        <Fragment set:html={chevron} />
+      </summary>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+            <th class="text-left px-3 sm:px-4 py-2">#</th>
+            <th class="text-left px-3 sm:px-4 py-2">Bowler</th>
+            <th class="text-left px-3 sm:px-4 py-2 hidden sm:table-cell">Team</th>
+            <th class="text-right px-3 sm:px-4 py-2">Game</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topBowlers.highGame.map((b, i) => (
+            <tr class="border-b border-border/50 hover:bg-secondary/30">
+              <td class="px-3 sm:px-4 py-2.5 text-muted-foreground">{i + 1}</td>
+              <td class="px-3 sm:px-4 py-2.5">
+                <a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 font-medium hover:text-primary transition-colors">
+                  {b.name}<Fragment set:html={profileIcon} />
+                </a>
+                <span class="block sm:hidden text-xs text-muted-foreground">{b.team}</span>
+              </td>
+              <td class="px-3 sm:px-4 py-2.5 text-muted-foreground text-xs hidden sm:table-cell">{b.team}</td>
+              <td class="px-3 sm:px-4 py-2.5 text-right font-mono font-bold">{b.highGame}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
+
+    <!-- High Series -->
+    <details class="bg-card border border-border rounded-lg stats-panel group">
+      <summary class="px-4 py-3 border-b border-border flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
+        <h3 class="font-semibold">Highest Series</h3>
+        <Fragment set:html={chevron} />
+      </summary>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+            <th class="text-left px-3 sm:px-4 py-2">#</th>
+            <th class="text-left px-3 sm:px-4 py-2">Bowler</th>
+            <th class="text-left px-3 sm:px-4 py-2 hidden sm:table-cell">Team</th>
+            <th class="text-right px-3 sm:px-4 py-2">Series</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topBowlers.highSeries.map((b, i) => (
+            <tr class="border-b border-border/50 hover:bg-secondary/30">
+              <td class="px-3 sm:px-4 py-2.5 text-muted-foreground">{i + 1}</td>
+              <td class="px-3 sm:px-4 py-2.5">
+                <a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 font-medium hover:text-primary transition-colors">
+                  {b.name}<Fragment set:html={profileIcon} />
+                </a>
+                <span class="block sm:hidden text-xs text-muted-foreground">{b.team}</span>
+              </td>
+              <td class="px-3 sm:px-4 py-2.5 text-muted-foreground text-xs hidden sm:table-cell">{b.team}</td>
+              <td class="px-3 sm:px-4 py-2.5 text-right font-mono font-bold">{b.highSeries}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
+
+    <!-- Most Improved -->
+    <details class="bg-card border border-border rounded-lg stats-panel group">
+      <summary class="px-4 py-3 border-b border-border flex items-center justify-between cursor-pointer lg:cursor-default list-none [&::-webkit-details-marker]:hidden">
+        <h3 class="font-semibold">Most Improved</h3>
+        <Fragment set:html={chevron} />
+      </summary>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border text-muted-foreground text-xs uppercase">
+            <th class="text-left px-3 sm:px-4 py-2">#</th>
+            <th class="text-left px-3 sm:px-4 py-2">Bowler</th>
+            <th class="text-right px-3 sm:px-4 py-2 hidden sm:table-cell">From</th>
+            <th class="text-right px-3 sm:px-4 py-2 hidden sm:table-cell">To</th>
+            <th class="text-right px-3 sm:px-4 py-2">+/-</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topBowlers.mostImproved.map((b, i) => (
+            <tr class="border-b border-border/50 hover:bg-secondary/30">
+              <td class="px-3 sm:px-4 py-2.5 text-muted-foreground">{i + 1}</td>
+              <td class="px-3 sm:px-4 py-2.5">
+                <a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 font-medium hover:text-primary transition-colors">
+                  {b.name}<Fragment set:html={profileIcon} />
+                </a>
+                <span class="block sm:hidden text-xs text-muted-foreground">{b.team}</span>
+                <span class="block sm:hidden text-xs font-mono text-muted-foreground">{b.enteringAvg} &rarr; {b.currentAvg}</span>
+              </td>
+              <td class="px-3 sm:px-4 py-2.5 text-right font-mono hidden sm:table-cell">{b.enteringAvg}</td>
+              <td class="px-3 sm:px-4 py-2.5 text-right font-mono hidden sm:table-cell">{b.currentAvg}</td>
+              <td class="px-3 sm:px-4 py-2.5 text-right font-mono font-bold text-green-400">+{b.improvement}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
+  </div>
+
+  <style is:global>
+    .stats-chevron {
+      transition: transform 0.2s ease-in-out;
+    }
+    details[open] .stats-chevron {
+      transform: rotate(180deg);
+    }
+    @media (min-width: 1024px) {
+      .stats-chevron {
+        display: none;
+      }
+    }
+  </style>
+
+  <script>
+    const mq = window.matchMedia('(min-width: 1024px)');
+    function handleBreakpoint() {
+      const isDesktop = mq.matches;
+      document.querySelectorAll('.stats-panel').forEach(el => {
+        if (isDesktop) {
+          el.setAttribute('open', '');
+        } else {
+          el.removeAttribute('open');
+        }
+      });
+    }
+    handleBreakpoint();
+    mq.addEventListener('change', handleBreakpoint);
+  </script>
+</Layout>
