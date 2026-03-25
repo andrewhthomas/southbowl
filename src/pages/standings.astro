@@ -1,10 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { standings } from '../data/league';
-
-function fmt(n: number) {
-  return Number.isInteger(n) ? n.toString() : n.toFixed(1);
-}
+import { fmt } from '../lib/utils';
 ---
 
 <Layout title="Standings" activeNav="/standings">

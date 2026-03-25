@@ -4,10 +4,7 @@ import { bowlers } from '../../data/league';
 import { weekRecaps } from '../../data/recaps';
 import type { BowlerScore, WeekRecap } from '../../data/recaps';
 import type { Bowler } from '../../data/league';
-
-function toSlug(name: string): string {
-  return name.toLowerCase().replace(/[\s,']+/g, '-').replace(/^-+|-+$/g, '');
-}
+import { toSlug } from '../../lib/utils';
 
 function normalizedSlug(name: string): string {
   return toSlug(name).split('-').sort().join('-');
