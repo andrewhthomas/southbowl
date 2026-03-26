@@ -30,10 +30,10 @@ const { title = league.name, activeNav = '/' } = Astro.props;
     <!-- Mobile header -->
     <header class="lg:hidden border-b border-border bg-card px-4 py-3">
       <div class="flex items-center justify-between">
-        <div>
+        <a href="/">
           <h1 class="text-lg font-bold text-primary">{league.center}</h1>
           <p class="text-xs text-muted-foreground">{league.name}</p>
-        </div>
+        </a>
         <div class="flex items-center gap-1">
           <button id="font-down-mobile" class="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-bold" aria-label="Decrease text size">A-</button>
           <button id="font-up-mobile" class="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-bold" aria-label="Increase text size">A+</button>
@@ -83,7 +83,7 @@ const { title = league.name, activeNav = '/' } = Astro.props;
       <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:min-h-screen border-r border-border bg-card">
         <div class="p-6 border-b border-border">
           <div class="flex items-center justify-between">
-            <h1 class="text-xl font-bold text-primary">{league.center}</h1>
+            <a href="/"><h1 class="text-xl font-bold text-primary hover:underline">{league.center}</h1></a>
             <button id="theme-toggle-desktop" class="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" aria-label="Toggle theme">
               <svg class="w-4 h-4 theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
