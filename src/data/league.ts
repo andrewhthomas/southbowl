@@ -6,7 +6,7 @@ export const league = {
   day: "Thursday",
   time: "6:30 PM",
   startDate: "02/05/2026",
-  lastUpdated: "04/02/2026",
+  lastUpdated: "04/09/2026",
   leagueId: 144228,
 };
 
@@ -142,7 +142,7 @@ export const teamRosters: Record<string, string[]> = {
   "Tuesday Night Strikers": ["Baron, Dan", "Waldron, Evan", "Spiller, Eric", "Walker, Paul"],
   "BLAME IT ON THE LANE": ["Karam, Nikki", "Rossi, Jess", "Scordia, Steph", "Miller, Joan", "Finnerty, Erin", "Fogg, Melissa", "Gallagher, Mb", "Snyder, Nicole"],
   "Bowl Yeller": ["J, John", "M, Kerry", "V, Andrew", "W, Colleen", "W, Jake", "W, Lee", "Russell, Billy", "R, Dan", "Z, Darren"],
-  "Danger D!": ["Woods, Jack", "Falcone, Dante", "Hong, James", "Blickwidel, Teddy", "Wixted, Claire", "Shapiro, Zach"],
+  "Danger D!": ["Woods, Jack", "Falcone, Dante", "Hong, James", "Hong, Martin", "Blickwidel, Teddy", "Wixted, Claire", "Shapiro, Zach"],
   "Bowl Strike Dracula": ["Smith, Brandon", "Maduzia, Korynn", "Srogonick, Casey", "Thomas, Andrew"],
   "Bowlerinas": ["Vicki", "C, Frank", "L, John", "Breanne", "Shannon", "Marino, Sal"],
   "Minds In The Gutter": ["S, David", "R, Jack", "F, Steve", "F, Vince", "P, Nick", "M, Ty"],
@@ -153,7 +153,7 @@ export const teamRosters: Record<string, string[]> = {
   "ITTY BITTY SPLITTY": ["Robinson, James", "O'Malley, Bridget", "Demarco, Mike", "Dionne", "M, Maureen", "C, Tom", "Slusarezyk, Stephen"],
   "LANE LIZARDS": ["Russell, Mark", "Termini, Jason", "Lee, Joe", "Riggar, Andrew", "Hammond, Chris", "Maggs, Will", "Eisenhart, Sefton"],
   "Balls on Fire": ["Conroy, Victoria", "Conroy, Stacey", "Mastrobuoni, Joe", "Conroy, Dave", "Berry, Jackie", "Ventresca, Anthony", "Hope, Christine", "Rockey, Ethan", "Mcguire, Mike", "Mecca, Natalia", "Brown, Cleon", "Mcglone, Pat"],
-  "DIRTY DAN AND THE PINHEADS": ["Spivak, Daniel", "Ezra", "Jacob", "Gabe", "Wesley", "Rebecca", "S, Todd", "Thibault"],
+  "DIRTY DAN AND THE PINHEADS": ["Spivak, Daniel", "Ezra", "Jacob", "Gabe", "Wesley", "Rebecca", "S, Todd", "Thibault", "L Train"],
   "General Strike Now!": ["Adam", "John", "Chris", "Buzz", "K, Nick"],
 };
 
@@ -319,16 +319,17 @@ export const schedule: WeekResult[] = [
     ],
   },
   {
+    // Real scores from Week 10 scoresheet PDF
     week: 10, date: "04/09/2026",
     matches: [
-      { team1: "ITTY BITTY SPLITTY", team2: "Tuesday Night Strikers", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [1, 2] as [number, number] },
-      { team1: "Pin Pals", team2: "Bowl Movements", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [3, 4] as [number, number] },
-      { team1: "Bowl Yeller", team2: "Bowl Strike Dracula", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [5, 6] as [number, number] },
-      { team1: "BLAME IT ON THE LANE", team2: "Danger D!", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [7, 8] as [number, number] },
-      { team1: "Balls on Fire", team2: "PISTOL PETE'S", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [9, 10] as [number, number] },
-      { team1: "LANE LIZARDS", team2: "General Strike Now!", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [11, 12] as [number, number] },
-      { team1: "Oh, That Team!", team2: "Bowlerinas", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [13, 14] as [number, number] },
-      { team1: "Minds In The Gutter", team2: "DIRTY DAN AND THE PINHEADS", score1: 0, score2: 0, wins1: 0, wins2: 0, lanes: [15, 16] as [number, number] },
+      { team1: "ITTY BITTY SPLITTY", team2: "Tuesday Night Strikers", score1: 2489, score2: 2799, wins1: 0, wins2: 4, lanes: [1, 2] as [number, number] },
+      { team1: "Pin Pals", team2: "Bowl Movements", score1: 2471, score2: 2814, wins1: 0, wins2: 4, lanes: [3, 4] as [number, number] },
+      { team1: "Bowl Yeller", team2: "Bowl Strike Dracula", score1: 2500, score2: 2673, wins1: 0, wins2: 4, lanes: [5, 6] as [number, number] },
+      { team1: "BLAME IT ON THE LANE", team2: "Danger D!", score1: 2529, score2: 2589, wins1: 1, wins2: 3, lanes: [7, 8] as [number, number] },
+      { team1: "Balls on Fire", team2: "PISTOL PETE'S", score1: 2461, score2: 2332, wins1: 3, wins2: 1, lanes: [9, 10] as [number, number] },
+      { team1: "LANE LIZARDS", team2: "General Strike Now!", score1: 2730, score2: 2434, wins1: 4, wins2: 0, lanes: [11, 12] as [number, number] },
+      { team1: "Oh, That Team!", team2: "Bowlerinas", score1: 2614, score2: 2542, wins1: 3, wins2: 1, lanes: [13, 14] as [number, number] },
+      { team1: "Minds In The Gutter", team2: "DIRTY DAN AND THE PINHEADS", score1: 2602, score2: 2520, wins1: 3, wins2: 1, lanes: [15, 16] as [number, number] },
     ],
   },
   {
