@@ -173,20 +173,20 @@ export const teamRosters: Record<string, string[]> = {
 export const standings: Team[] = [
   { rank: 1, num: 13, name: "LANE LIZARDS", wins: 36, losses: 12, pct: 0.750, avg: 661, pinfall: 23822, highGame: 784, highSeries: 2198 },
   { rank: 2, num: 7, name: "Minds In The Gutter", wins: 30, losses: 18, pct: 0.625, avg: 625, pinfall: 22502, highGame: 715, highSeries: 2018 },
-  { rank: 3, num: 10, name: "Pin Pals", wins: 27, losses: 21, pct: 0.563, avg: 621, pinfall: 22389, highGame: 719, highSeries: 2077 },
-  { rank: 4, num: 8, name: "Bowl Movements", wins: 27, losses: 21, pct: 0.563, avg: 567, pinfall: 20424, highGame: 728, highSeries: 2004 },
+  { rank: 3, num: 8, name: "Bowl Movements", wins: 27, losses: 21, pct: 0.563, avg: 567, pinfall: 20424, highGame: 728, highSeries: 2004 },
+  { rank: 4, num: 10, name: "Pin Pals", wins: 27, losses: 21, pct: 0.563, avg: 621, pinfall: 22389, highGame: 719, highSeries: 2077 },
   { rank: 5, num: 11, name: "Oh, That Team!", wins: 26, losses: 22, pct: 0.542, avg: 525, pinfall: 18901, highGame: 644, highSeries: 1745 },
   { rank: 6, num: 4, name: "Danger D!", wins: 26, losses: 22, pct: 0.542, avg: 498, pinfall: 17947, highGame: 666, highSeries: 1795 },
   { rank: 7, num: 16, name: "General Strike Now!", wins: 25, losses: 23, pct: 0.521, avg: 476, pinfall: 17169, highGame: 564, highSeries: 1522 },
   { rank: 8, num: 15, name: "DIRTY DAN AND THE PINHEADS", wins: 23.5, losses: 24.5, pct: 0.490, avg: 524, pinfall: 18872, highGame: 622, highSeries: 1681 },
   { rank: 9, num: 9, name: "PISTOL PETE'S", wins: 23, losses: 25, pct: 0.479, avg: 664, pinfall: 23928, highGame: 789, highSeries: 2242 },
-  { rank: 10, num: 3, name: "Bowl Yeller", wins: 23, losses: 25, pct: 0.479, avg: 507, pinfall: 18259, highGame: 665, highSeries: 1823 },
-  { rank: 11, num: 5, name: "Bowl Strike Dracula", wins: 23, losses: 25, pct: 0.479, avg: 581, pinfall: 20918, highGame: 717, highSeries: 2022 },
+  { rank: 10, num: 5, name: "Bowl Strike Dracula", wins: 23, losses: 25, pct: 0.479, avg: 581, pinfall: 20918, highGame: 717, highSeries: 2022 },
+  { rank: 11, num: 3, name: "Bowl Yeller", wins: 23, losses: 25, pct: 0.479, avg: 507, pinfall: 18259, highGame: 665, highSeries: 1823 },
   { rank: 12, num: 6, name: "Bowlerinas", wins: 22.5, losses: 25.5, pct: 0.469, avg: 501, pinfall: 18036, highGame: 635, highSeries: 1850 },
   { rank: 13, num: 2, name: "BLAME IT ON THE LANE", wins: 21, losses: 27, pct: 0.438, avg: 382, pinfall: 13777, highGame: 515, highSeries: 1496 },
   { rank: 14, num: 12, name: "ITTY BITTY SPLITTY", wins: 16, losses: 32, pct: 0.333, avg: 465, pinfall: 16747, highGame: 546, highSeries: 1520 },
-  { rank: 15, num: 1, name: "Tuesday Night Strikers", wins: 15, losses: 32, pct: 0.319, avg: 468, pinfall: 16876, highGame: 748, highSeries: 2100 },
-  { rank: 16, num: 14, name: "Balls on Fire", wins: 12, losses: 35, pct: 0.255, avg: 303, pinfall: 10909, highGame: 513, highSeries: 1437 },
+  { rank: 15, num: 1, name: "Tuesday Night Strikers", wins: 15, losses: 33, pct: 0.313, avg: 468, pinfall: 16876, highGame: 748, highSeries: 2100 },
+  { rank: 16, num: 14, name: "Balls on Fire", wins: 12, losses: 36, pct: 0.250, avg: 303, pinfall: 10909, highGame: 513, highSeries: 1437 },
 ];
 
 export interface WeekResult {
