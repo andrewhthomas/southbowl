@@ -51,5 +51,3 @@ To add a week of results, edit **two** files:
 
 Then bump `league.lastUpdated` in `src/data/league.ts` and refresh the affected
 `bowlers` / `standings` figures.
-
-See [CLAUDE.md](./CLAUDE.md) for additional architecture notes and gotchas.
