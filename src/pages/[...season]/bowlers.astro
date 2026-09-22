@@ -55,7 +55,7 @@ const profileIcon = icons.profile;
               </span>
             </td>
             <td class="px-4 py-3 text-right font-mono">{b.highGame}</td>
-            <td class="px-4 py-3 text-right font-mono">{b.highSeries}</td>
+            <td class="px-4 py-3 text-right font-mono">{b.highSeries || '--'}</td>
             <td class="px-4 py-3 text-right font-mono text-muted-foreground">{b.handicap}</td>
           </tr>
         ))}
@@ -90,7 +90,7 @@ const profileIcon = icons.profile;
           </div>
           <div>
             <span class="text-muted-foreground block">HS</span>
-            <span class="font-mono">{b.highSeries}</span>
+            <span class="font-mono">{b.highSeries || '--'}</span>
           </div>
           <div>
             <span class="text-muted-foreground block">Hcp</span>
