@@ -1,0 +1,71 @@
+---
+import { seasons, seasonHref, type Season } from '../data/seasons';
+
+interface Props {
+  season: Season;
+  activeNav: string;
+  compact?: boolean;
+}
+
+const { season, activeNav, compact = false } = Astro.props;
+---
+
+<details class="season-picker relative">
+  <summary
+    aria-label={`Season: ${season.league.name}. Choose another season`}
+    class:list={[
+      'flex items-center gap-1.5 cursor-pointer list-none [&::-webkit-details-marker]:hidden rounded-md transition-colors',
+      compact
+        ? 'text-xs text-muted-foreground hover:text-foreground'
+        : 'justify-between bg-secondary border border-border px-3 py-2 text-sm font-medium hover:bg-secondary/80',
+    ]}
+  >
+    <span class:list={['text-left', compact && 'truncate']}>{season.league.name}</span>
+    <svg class="season-chevron w-4 h-4 shrink-0 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
+    </svg>
+  </summary>
+  <ul class:list={['absolute left-0 z-30 mt-1 bg-card border border-border rounded-md shadow-lg py-1', compact ? 'w-56' : 'right-0']}>
+    {seasons.map(s => (
+      <li>
+        <a
+          href={seasonHref(s, activeNav)}
+          aria-current={s.id === season.id ? 'page' : undefined}
+          class:list={[
+            'flex items-center justify-between gap-3 px-3 py-2 text-sm transition-colors',
+            s.id === season.id
+              ? 'text-primary font-medium'
+              : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+          ]}
+        >
+          {s.label}
+          {s.isCurrent && <span class="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Current</span>}
+        </a>
+      </li>
+    ))}
+  </ul>
+</details>
+
+<style>
+  .season-chevron {
+    transition: transform 0.2s ease-in-out;
+  }
+  details[open] .season-chevron {
+    transform: rotate(180deg);
+  }
+</style>
+
+<script>
+  function closeAll(except?: Node) {
+    document.querySelectorAll<HTMLDetailsElement>('details.season-picker[open]').forEach(d => {
+      if (!except || !d.contains(except)) d.open = false;
+    });
+  }
+  document.addEventListener('click', e => closeAll(e.target as Node));
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const open = document.querySelector<HTMLDetailsElement>('details.season-picker[open]');
+    closeAll();
+    open?.querySelector('summary')?.focus();
+  });
+</script>
