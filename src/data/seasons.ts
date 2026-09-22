@@ -1,11 +1,12 @@
 import type { Bowler, SeasonData, WeekResult } from "./types";
 import winter2026 from "./seasons/winter-2026";
+import fall2026 from "./seasons/fall-2026";
 
 export type * from "./types";
 
 // Newest first. The first season is the current one and is served at the site root;
 // the rest are archived under /<id>/.
-const seasonData: SeasonData[] = [winter2026];
+const seasonData: SeasonData[] = [fall2026, winter2026];
 
 export interface Season extends SeasonData {
   base: string; // URL prefix: "" for the current season, "/<id>" for archived ones
