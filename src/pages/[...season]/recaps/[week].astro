@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { seasonHref, seasonPaths, type Season, type TeamScore, type WeekRecap } from '../../../data/seasons';
+import { seasonHref, seasonPaths, type BowlerScore, type Season, type TeamScore, type WeekRecap } from '../../../data/seasons';
+import { absenteeScore } from '../../../data/derive';
 
 export function getStaticPaths() {
   return seasonPaths().flatMap(({ params, props }) =>
@@ -19,9 +20,12 @@ interface Props {
 const { season, recap } = Astro.props;
 const week = recap.week;
 
-function gameDisplay(g: number | null, avg: number) {
-  if (g === null) return { val: avg.toString(), absent: true };
-  return { val: g.toString(), absent: false };
+// Null games show the absentee score ("a110"), or "-" when a sub bowled that game
+function gameDisplay(b: BowlerScore, i: number) {
+  const g = b.games[i];
+  if (g !== null) return { val: g.toString(), absent: false };
+  const a = absenteeScore(b);
+  return { val: a ? `a${a}` : '-', absent: true };
 }
 
 function teamWonGame(t1: TeamScore, t2: TeamScore, gameIdx: number): 'team1' | 'team2' | 'tie' {
@@ -103,23 +107,26 @@ function teamWonGame(t1: TeamScore, t2: TeamScore, gameIdx: number): 'team1' | '
                       </tr>
                     </thead>
                     <tbody>
+                      {team.bowlers.length === 0 && (
+                        <tr class="border-b border-border/30">
+                          <td class="px-3 py-1.5 text-muted-foreground italic" colspan="8">No one bowled</td>
+                        </tr>
+                      )}
                       {team.bowlers.map((b) => {
-                        const g1 = gameDisplay(b.games[0], b.avg);
-                        const g2 = gameDisplay(b.games[1], b.avg);
-                        const g3 = gameDisplay(b.games[2], b.avg);
+                        const [g1, g2, g3] = [0, 1, 2].map(i => gameDisplay(b, i));
                         return (
                           <tr class="border-b border-border/30 hover:bg-secondary/20">
                             <td class="px-3 py-1.5 font-medium">{b.name}</td>
                             <td class="px-2 py-1.5 text-right font-mono text-muted-foreground">{b.avg}</td>
                             <td class="px-2 py-1.5 text-right font-mono text-muted-foreground">{b.hdcp}</td>
                             <td class:list={['px-2 py-1.5 text-right font-mono', g1.absent && 'text-muted-foreground italic']}>
-                              {g1.absent && 'a'}{g1.val}
+                              {g1.val}
                             </td>
                             <td class:list={['px-2 py-1.5 text-right font-mono', g2.absent && 'text-muted-foreground italic']}>
-                              {g2.absent && 'a'}{g2.val}
+                              {g2.val}
                             </td>
                             <td class:list={['px-2 py-1.5 text-right font-mono', g3.absent && 'text-muted-foreground italic']}>
-                              {g3.absent && 'a'}{g3.val}
+                              {g3.val}
                             </td>
                             <td class="px-2 py-1.5 text-right font-mono font-medium">{b.total}</td>
                             <td class="px-3 py-1.5 text-right font-mono font-medium">{b.hdcpTotal}</td>

@@ -1,7 +1,7 @@
 // Builds a season's bowler list, standings, rosters, and schedule from its scoresheet
 // recaps, following LeagueSecretary's rules. Used by seasons that only have the
 // weekly scoresheet PDFs (no LeagueSecretary standings or bowler list to copy from).
-import type { Bowler, Team, WeekRecap, WeekResult } from "./types";
+import type { Bowler, BowlerScore, Team, WeekRecap, WeekResult } from "./types";
 
 const GAMES_PER_WEEK = 3;
 const POINTS_PER_MATCH = 4; // one per game plus one for series
@@ -10,6 +10,14 @@ const PLACEHOLDER_AVERAGE = 120;
 
 export function handicapFor(average: number): number {
   return Math.max(0, Math.floor((220 - average) * 0.9));
+}
+
+// Per-game absentee score for a row's null games, or 0 when those games were bowled by a sub
+export function absenteeScore(b: BowlerScore): number {
+  const bowled = b.games.filter((g): g is number => g !== null);
+  const missing = b.games.length - bowled.length;
+  if (missing === 0) return 0;
+  return Math.round((b.total - bowled.reduce((s, g) => s + g, 0)) / missing);
 }
 
 function byWeek(recaps: WeekRecap[]): WeekRecap[] {
