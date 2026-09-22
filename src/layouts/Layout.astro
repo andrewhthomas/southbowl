@@ -1,13 +1,17 @@
 ---
 import '../styles/global.css';
-import { league, navItems } from '../data/league';
+import { navItems, seasonHref, type Season } from '../data/seasons';
 
 interface Props {
+  season: Season;
   title?: string;
   activeNav?: string;
 }
 
-const { title = league.name, activeNav = '/' } = Astro.props;
+const { season, activeNav = '/' } = Astro.props;
+const { league } = season;
+const title = Astro.props.title ?? league.name;
+const href = (path: string) => seasonHref(season, path);
 ---
 
 <html lang="en">
@@ -15,7 +19,7 @@ const { title = league.name, activeNav = '/' } = Astro.props;
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
-    <title>{title} | {league.center}</title>
+    <title>{title}{!season.isCurrent && ` (${season.label})`} | {league.center}</title>
     <!-- Prevent flash: apply theme before paint -->
     <script is:inline>
       (function() {
@@ -28,7 +32,7 @@ const { title = league.name, activeNav = '/' } = Astro.props;
     <!-- Mobile header -->
     <header class="lg:hidden border-b border-border bg-card px-4 py-3">
       <div class="flex items-center justify-between">
-        <a href="/">
+        <a href={href('/')}>
           <h1 class="text-lg font-bold text-primary">{league.center}</h1>
           <p class="text-xs text-muted-foreground">{league.name}</p>
         </a>
@@ -58,7 +62,7 @@ const { title = league.name, activeNav = '/' } = Astro.props;
           {navItems.map(item => (
             <li>
               <a
-                href={item.href}
+                href={href(item.href)}
                 class:list={[
                   'block px-3 py-2 rounded-md text-sm font-medium transition-colors',
                   activeNav === item.href
@@ -79,7 +83,7 @@ const { title = league.name, activeNav = '/' } = Astro.props;
       <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:min-h-screen border-r border-border bg-card">
         <div class="p-6 border-b border-border">
           <div class="flex items-center justify-between">
-            <a href="/"><h1 class="text-xl font-bold text-primary hover:underline">{league.center}</h1></a>
+            <a href={href('/')}><h1 class="text-xl font-bold text-primary hover:underline">{league.center}</h1></a>
             <button id="theme-toggle-desktop" class="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" aria-label="Toggle theme">
               <svg class="w-4 h-4 theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -102,7 +106,7 @@ const { title = league.name, activeNav = '/' } = Astro.props;
             {navItems.map(item => (
               <li>
                 <a
-                  href={item.href}
+                  href={href(item.href)}
                   class:list={[
                     'block px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
                     activeNav === item.href
@@ -122,8 +126,8 @@ const { title = league.name, activeNav = '/' } = Astro.props;
           </svg>
         </div>
         <div class="px-4 pb-4 border-t border-border pt-3 text-xs text-muted-foreground">
-          <p>League #{league.leagueId}</p>
-          <p>Season starts {league.startDate}</p>
+          {league.leagueId && <p>League #{league.leagueId}</p>}
+          <p>Season {season.isCurrent ? 'starts' : 'started'} {league.startDate}</p>
         </div>
       </aside>
 

@@ -1,14 +1,24 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { league, standings, topBowlers, schedule } from '../data/league';
+import Layout from '../../layouts/Layout.astro';
+import { seasonHref, seasonPaths, weeksBowled, type Season } from '../../data/seasons';
+
+export function getStaticPaths() {
+  return seasonPaths();
+}
+
+interface Props {
+  season: Season;
+}
+
+const { season } = Astro.props;
+const { league, standings, topBowlers, schedule } = season;
+const href = (path: string) => seasonHref(season, path);
 
 const topHalf = standings.slice(0, 8);
 const latestWeek = [...schedule].reverse().find(w =>
   w.matches.length > 0 && w.matches.some(m => m.score1 !== 0 || m.score2 !== 0)
 ) ?? schedule[0];
-const weeksBowled = schedule.filter(w =>
-  w.matches.length > 0 && w.matches.some(m => m.score1 !== 0 || m.score2 !== 0)
-).length;
+const weeksDone = weeksBowled(schedule);
 const topAvg = topBowlers.highAverage.slice(0, 5);
 const topGame = topBowlers.highGame.slice(0, 5);
 
@@ -18,7 +28,7 @@ function isFuture(m: { score1: number; score2: number; wins1: number; wins2: num
 const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFuture));
 ---
 
-<Layout title="Dashboard" activeNav="/">
+<Layout season={season} title="Dashboard" activeNav="/">
   <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
 
   <!-- Stats cards -->
@@ -29,7 +39,7 @@ const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFu
     </div>
     <div class="bg-card border border-border rounded-lg p-4">
       <p class="text-xs text-muted-foreground uppercase tracking-wide">Weeks Bowled</p>
-      <p class="text-2xl font-bold mt-1">{weeksBowled} <span class="text-sm font-normal text-muted-foreground">of 12</span></p>
+      <p class="text-2xl font-bold mt-1">{weeksDone}{league.totalWeeks && <span class="text-sm font-normal text-muted-foreground"> of {league.totalWeeks}</span>}</p>
     </div>
     <div class="bg-card border border-border rounded-lg p-4">
       <p class="text-xs text-muted-foreground uppercase tracking-wide">League Leader</p>
@@ -37,8 +47,8 @@ const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFu
     </div>
     <div class="bg-card border border-border rounded-lg p-4">
       <p class="text-xs text-muted-foreground uppercase tracking-wide">Top Average</p>
-      <p class="text-2xl font-bold mt-1">{topAvg[0].average}</p>
-      <p class="text-xs text-muted-foreground">{topAvg[0].name}</p>
+      <p class="text-2xl font-bold mt-1">{topAvg[0]?.average ?? '--'}</p>
+      <p class="text-xs text-muted-foreground">{topAvg[0]?.name}</p>
     </div>
   </div>
 
@@ -51,7 +61,7 @@ const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFu
           <span class="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded uppercase font-bold">Upcoming</span>
           <span class="text-sm text-muted-foreground">{nextWeek.date}</span>
         </div>
-        <a href="/schedule" class="text-xs text-primary hover:underline">Full schedule</a>
+        <a href={href('/schedule')} class="text-xs text-primary hover:underline">Full schedule</a>
       </div>
       <div class="grid md:grid-cols-2 divide-y md:divide-y-0 divide-border/50">
         {nextWeek.matches.map((m) => (
@@ -71,7 +81,7 @@ const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFu
     <div class="bg-card border border-border rounded-lg">
       <div class="px-4 py-3 border-b border-border flex items-center justify-between">
         <h3 class="font-semibold">Top Half Standings</h3>
-        <a href="/standings" class="text-xs text-primary hover:underline">View all</a>
+        <a href={href('/standings')} class="text-xs text-primary hover:underline">View all</a>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -103,7 +113,7 @@ const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFu
     <div class="bg-card border border-border rounded-lg">
       <div class="px-4 py-3 border-b border-border flex items-center justify-between">
         <h3 class="font-semibold">Week {latestWeek.week} Results ({latestWeek.date})</h3>
-        <a href="/schedule" class="text-xs text-primary hover:underline">Full schedule</a>
+        <a href={href('/schedule')} class="text-xs text-primary hover:underline">Full schedule</a>
       </div>
       <div class="divide-y divide-border/50">
         {latestWeek.matches.map((m) => (
@@ -126,7 +136,7 @@ const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFu
     <div class="bg-card border border-border rounded-lg">
       <div class="px-4 py-3 border-b border-border flex items-center justify-between">
         <h3 class="font-semibold">Top Averages</h3>
-        <a href="/statistics" class="text-xs text-primary hover:underline">All stats</a>
+        <a href={href('/statistics')} class="text-xs text-primary hover:underline">All stats</a>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -156,7 +166,7 @@ const nextWeek = schedule.find(w => w.matches.length > 0 && w.matches.every(isFu
     <div class="bg-card border border-border rounded-lg">
       <div class="px-4 py-3 border-b border-border flex items-center justify-between">
         <h3 class="font-semibold">Top High Games</h3>
-        <a href="/statistics" class="text-xs text-primary hover:underline">All stats</a>
+        <a href={href('/statistics')} class="text-xs text-primary hover:underline">All stats</a>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">

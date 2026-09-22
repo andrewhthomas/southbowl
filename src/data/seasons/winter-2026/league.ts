@@ -1,4 +1,6 @@
-export const league = {
+import type { Bowler, LeagueInfo, Team, WeekResult } from "../../types";
+
+export const league: LeagueInfo = {
   name: "Thirsty Thursday Winter 2026",
   center: "Southbowl",
   address: "19 E Oregon Ave, Philadelphia, PA",
@@ -8,22 +10,10 @@ export const league = {
   startDate: "02/05/2026",
   lastUpdated: "04/23/2026",
   leagueId: 144228,
+  totalWeeks: 12,
 };
 
-export interface Bowler {
-  name: string;
-  team: string;
-  games: number;
-  pins: number;
-  average: number;
-  highGame: number;
-  highSeries: number;
-  handicap: number;
-  gender: "M" | "W";
-  enteringAverage: number;
-}
-
-// Real bowler data from LeagueSecretary.com — only active bowlers (games > 0)
+// Real bowler data from LeagueSecretary.com (only active bowlers, games > 0)
 export const bowlers: Bowler[] = [
   { name: "Adam", team: "General Strike Now!", games: 36, pins: 4827, average: 134, highGame: 204, highSeries: 464, handicap: 77, gender: "M", enteringAverage: 0 },
   { name: "Breanne", team: "Bowlerinas", games: 12, pins: 1641, average: 136, highGame: 174, highSeries: 468, handicap: 75, gender: "W", enteringAverage: 144 },
@@ -136,19 +126,6 @@ export const bowlers: Bowler[] = [
   { name: "Dave", team: "Bowlerinas", games: 3, pins: 424, average: 141, highGame: 149, highSeries: 424, handicap: 71, gender: "M", enteringAverage: 141 },
 ];
 
-export interface Team {
-  rank: number;
-  num: number;     // team number
-  name: string;
-  wins: number;   // can be fractional (e.g. 11.5)
-  losses: number;  // can be fractional (e.g. 12.5)
-  pct: number;
-  avg: number;     // team average
-  pinfall: number;
-  highGame: number;  // team high scratch game
-  highSeries: number; // team high scratch series
-}
-
 // Official rosters from LeagueSecretary.com team list
 export const teamRosters: Record<string, string[]> = {
   "Tuesday Night Strikers": ["Baron, Dan", "Waldron, Evan", "Spiller, Eric", "Walker, Paul"],
@@ -188,20 +165,6 @@ export const standings: Team[] = [
   { rank: 15, num: 1, name: "Tuesday Night Strikers", wins: 15, losses: 33, pct: 0.313, avg: 468, pinfall: 16876, highGame: 748, highSeries: 2100 },
   { rank: 16, num: 14, name: "Balls on Fire", wins: 12, losses: 36, pct: 0.250, avg: 303, pinfall: 10909, highGame: 513, highSeries: 1437 },
 ];
-
-export interface WeekResult {
-  week: number;
-  date: string;
-  matches: {
-    team1: string;
-    team2: string;
-    score1: number;
-    score2: number;
-    wins1: number;
-    wins2: number;
-    lanes?: [number, number];
-  }[];
-}
 
 export const schedule: WeekResult[] = [
   {
@@ -372,33 +335,4 @@ export const schedule: WeekResult[] = [
       { team1: "Balls on Fire", team2: "Tuesday Night Strikers", score1: 0, score2: 2478, wins1: 0, wins2: 3, lanes: [15, 16] as [number, number] },
     ],
   },
-];
-
-// Derived stats from real bowler data
-const activeBowlers = bowlers.filter(b => b.games >= 9);
-
-export const topBowlers = {
-  highAverage: activeBowlers.slice().sort((a, b) => b.average - a.average).slice(0, 20),
-  highGame: bowlers.slice().sort((a, b) => b.highGame - a.highGame).slice(0, 20),
-  highSeries: bowlers.slice().sort((a, b) => b.highSeries - a.highSeries).slice(0, 20),
-  mostImproved: bowlers
-    .filter(b => b.enteringAverage > 0 && b.games >= 9 && b.average > b.enteringAverage)
-    .map(b => ({
-      name: b.name,
-      team: b.team,
-      enteringAvg: b.enteringAverage,
-      currentAvg: b.average,
-      improvement: b.average - b.enteringAverage,
-    }))
-    .sort((a, b) => b.improvement - a.improvement)
-    .slice(0, 20),
-};
-
-export const navItems = [
-  { label: "Dashboard", href: "/" },
-  { label: "Schedule", href: "/schedule" },
-  { label: "Standings", href: "/standings" },
-  { label: "Teams", href: "/teams" },
-  { label: "Bowlers", href: "/bowlers" },
-  { label: "Statistics", href: "/statistics" },
 ];

@@ -1,13 +1,25 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { bowlers } from '../data/league';
-import { toSlug, icons } from '../lib/utils';
+import Layout from '../../layouts/Layout.astro';
+import { seasonHref, seasonPaths, type Season } from '../../data/seasons';
+import { toSlug, icons } from '../../lib/utils';
+
+export function getStaticPaths() {
+  return seasonPaths();
+}
+
+interface Props {
+  season: Season;
+}
+
+const { season } = Astro.props;
+const { bowlers } = season;
+const profileHref = (name: string) => seasonHref(season, `/bowlers/${toSlug(name)}`);
 
 const sorted = bowlers.slice().sort((a, b) => b.average - a.average);
 const profileIcon = icons.profile;
 ---
 
-<Layout title="Bowlers" activeNav="/bowlers">
+<Layout season={season} title="Bowlers" activeNav="/bowlers">
   <h2 class="text-2xl font-bold mb-6">Bowler List</h2>
 
   <!-- Desktop table -->
@@ -28,7 +40,7 @@ const profileIcon = icons.profile;
       <tbody>
         {sorted.map((b) => (
           <tr class="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-            <td class="px-4 py-3 font-medium"><a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 hover:text-primary transition-colors">{b.name}<Fragment set:html={profileIcon} /></a></td>
+            <td class="px-4 py-3 font-medium"><a href={profileHref(b.name)} class="group inline-flex items-center gap-1 hover:text-primary transition-colors">{b.name}<Fragment set:html={profileIcon} /></a></td>
             <td class="px-4 py-3 text-muted-foreground text-xs">{b.team}</td>
             <td class="px-4 py-3 text-center font-mono">{b.games}</td>
             <td class="px-4 py-3 text-right font-mono">{b.pins.toLocaleString()}</td>
@@ -56,7 +68,7 @@ const profileIcon = icons.profile;
     {sorted.map((b) => (
       <div class="bg-card border border-border rounded-lg px-4 py-3">
         <div class="flex items-center justify-between mb-1">
-          <a href={`/bowlers/${toSlug(b.name)}`} class="group inline-flex items-center gap-1 font-medium text-sm hover:text-primary transition-colors">{b.name}<Fragment set:html={profileIcon} /></a>
+          <a href={profileHref(b.name)} class="group inline-flex items-center gap-1 font-medium text-sm hover:text-primary transition-colors">{b.name}<Fragment set:html={profileIcon} /></a>
           <span class:list={[
             'inline-block px-2 py-0.5 rounded text-xs font-bold font-mono',
             b.average >= 180 && 'bg-green-500/20 text-green-400',

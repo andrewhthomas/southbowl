@@ -1,14 +1,7 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { bowlers } from '../../data/league';
-import { weekRecaps } from '../../data/recaps';
-import type { BowlerScore, WeekRecap } from '../../data/recaps';
-import type { Bowler } from '../../data/league';
-import { toSlug } from '../../lib/utils';
-
-function normalizedSlug(name: string): string {
-  return toSlug(name).split('-').sort().join('-');
-}
+import Layout from '../../../layouts/Layout.astro';
+import { seasonHref, seasonPaths, type Bowler, type Season } from '../../../data/seasons';
+import { normalizedSlug, toSlug } from '../../../lib/utils';
 
 interface BowlerWeek {
   week: number;
@@ -21,48 +14,48 @@ interface BowlerWeek {
 }
 
 export function getStaticPaths() {
-  function slugify(name: string): string {
-    return name.toLowerCase().replace(/[\s,']+/g, '-').replace(/^-+|-+$/g, '');
-  }
+  return seasonPaths().flatMap(({ params, props }) => {
+    const { season } = props;
 
-  // Collect all unique bowler names from recaps
-  const recapNames = new Set<string>();
-  for (const recap of weekRecaps) {
-    for (const match of recap.matches) {
-      for (const b of [...match.team1.bowlers, ...match.team2.bowlers]) {
-        recapNames.add(b.name);
+    // Collect all unique bowler names from recaps
+    const recapNames = new Set<string>();
+    for (const recap of season.weekRecaps) {
+      for (const match of recap.matches) {
+        for (const b of [...match.team1.bowlers, ...match.team2.bowlers]) {
+          recapNames.add(b.name);
+        }
       }
     }
-  }
 
-  // Generate paths for recap names + league bowler names (which may have different slug forms)
-  const paths: { params: { slug: string }; props: { bowlerName: string } }[] = [];
-  const seenSlugs = new Set<string>();
-
-  // First: all recap bowler slugs
-  for (const name of recapNames) {
-    const slug = slugify(name);
-    if (!seenSlugs.has(slug)) {
-      seenSlugs.add(slug);
-      paths.push({ params: { slug }, props: { bowlerName: name } });
+    // Recap names first, then league bowler names (which may use a different name form,
+    // e.g. "Srogonick, Casey" vs "Casey Srogonick") pointed at the matching recap name
+    const bowlerNames = new Map<string, string>();
+    for (const name of recapNames) {
+      const slug = toSlug(name);
+      if (!bowlerNames.has(slug)) bowlerNames.set(slug, name);
     }
-  }
-
-  // Second: league bowler slugs (may differ from recap names, e.g., "Srogonick, Casey" vs "Casey Srogonick")
-  for (const b of bowlers) {
-    const slug = slugify(b.name);
-    if (!seenSlugs.has(slug)) {
-      // Find matching recap name by checking if league name parts match any recap name
-      const recapName = Array.from(recapNames).find(rn => slugify(rn).split('-').sort().join('-') === slug.split('-').sort().join('-'));
-      seenSlugs.add(slug);
-      paths.push({ params: { slug }, props: { bowlerName: recapName ?? b.name } });
+    for (const b of season.bowlers) {
+      const slug = toSlug(b.name);
+      if (!bowlerNames.has(slug)) {
+        const recapName = Array.from(recapNames).find(rn => normalizedSlug(rn) === normalizedSlug(b.name));
+        bowlerNames.set(slug, recapName ?? b.name);
+      }
     }
-  }
 
-  return paths;
+    return Array.from(bowlerNames, ([slug, bowlerName]) => ({
+      params: { ...params, slug },
+      props: { season, bowlerName },
+    }));
+  });
 }
 
-const { bowlerName } = Astro.props;
+interface Props {
+  season: Season;
+  bowlerName: string;
+}
+
+const { season, bowlerName } = Astro.props;
+const { bowlers, weekRecaps } = season;
 
 // Find bowler in league data (try exact match, then normalized slug match)
 const bowlerData: Bowler | undefined = bowlers.find(b => b.name === bowlerName)
@@ -156,9 +149,9 @@ for (let i = 0; i <= yTickCount; i++) {
 }
 ---
 
-<Layout title={`${name} - Bowler Profile`} activeNav="/bowlers">
+<Layout season={season} title={`${name} - Bowler Profile`} activeNav="/bowlers">
   <!-- Back link -->
-  <a href="/bowlers" class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+  <a href={seasonHref(season, '/bowlers')} class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
     Back to Bowlers
   </a>

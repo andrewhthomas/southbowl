@@ -1,36 +1,4 @@
-export interface BowlerScore {
-  name: string;
-  avg: number;
-  hdcp: number;
-  games: (number | null)[]; // null = absent (uses avg)
-  total: number;
-  hdcpTotal: number;
-}
-
-export interface TeamScore {
-  name: string;
-  num: number;
-  bowlers: BowlerScore[];
-  scratchByGame: number[];
-  hdcpByGame: number[];
-  totalByGame: number[];
-  scratchTotal: number;
-  hdcpTotal: number;
-  grandTotal: number;
-  pointsWon: number;
-}
-
-export interface DetailedMatch {
-  lanes: [number, number];
-  team1: TeamScore;
-  team2: TeamScore;
-}
-
-export interface WeekRecap {
-  week: number;
-  date: string;
-  matches: DetailedMatch[];
-}
+import type { WeekRecap } from "../../types";
 
 export const weekRecaps: WeekRecap[] = [
   {

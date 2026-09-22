@@ -1,10 +1,21 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { standings } from '../data/league';
-import { fmt } from '../lib/utils';
+import Layout from '../../layouts/Layout.astro';
+import { seasonPaths, type Season } from '../../data/seasons';
+import { fmt } from '../../lib/utils';
+
+export function getStaticPaths() {
+  return seasonPaths();
+}
+
+interface Props {
+  season: Season;
+}
+
+const { season } = Astro.props;
+const { standings } = season;
 ---
 
-<Layout title="Standings" activeNav="/standings">
+<Layout season={season} title="Standings" activeNav="/standings">
   <h2 class="text-2xl font-bold mb-6">Standings</h2>
 
   <!-- Desktop table -->

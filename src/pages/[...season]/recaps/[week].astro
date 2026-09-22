@@ -1,14 +1,23 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { weekRecaps } from '../../data/recaps';
-import type { TeamScore } from '../../data/recaps';
+import Layout from '../../../layouts/Layout.astro';
+import { seasonHref, seasonPaths, type Season, type TeamScore, type WeekRecap } from '../../../data/seasons';
 
 export function getStaticPaths() {
-  return weekRecaps.map(r => ({ params: { week: r.week.toString() } }));
+  return seasonPaths().flatMap(({ params, props }) =>
+    props.season.weekRecaps.map(recap => ({
+      params: { ...params, week: recap.week.toString() },
+      props: { ...props, recap },
+    }))
+  );
 }
 
-const { week } = Astro.params;
-const recap = weekRecaps.find(r => r.week === Number(week))!;
+interface Props {
+  season: Season;
+  recap: WeekRecap;
+}
+
+const { season, recap } = Astro.props;
+const week = recap.week;
 
 function gameDisplay(g: number | null, avg: number) {
   if (g === null) return { val: avg.toString(), absent: true };
@@ -22,13 +31,13 @@ function teamWonGame(t1: TeamScore, t2: TeamScore, gameIdx: number): 'team1' | '
 }
 ---
 
-<Layout title={`Week ${week} Recap`} activeNav="/schedule">
+<Layout season={season} title={`Week ${week} Recap`} activeNav="/schedule">
   <div class="flex items-center justify-between mb-6">
     <div>
       <h2 class="text-2xl font-bold">Week {week} Recap</h2>
       <p class="text-sm text-muted-foreground">{recap.date}</p>
     </div>
-    <a href="/schedule" class="text-sm text-primary hover:underline">&larr; Schedule</a>
+    <a href={seasonHref(season, '/schedule')} class="text-sm text-primary hover:underline">&larr; Schedule</a>
   </div>
 
   <div class="space-y-8">

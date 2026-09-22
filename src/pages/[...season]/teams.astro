@@ -1,12 +1,23 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { standings, bowlers, teamRosters } from '../data/league';
-import { fmt } from '../lib/utils';
+import Layout from '../../layouts/Layout.astro';
+import { seasonPaths, type Season } from '../../data/seasons';
+import { fmt } from '../../lib/utils';
+
+export function getStaticPaths() {
+  return seasonPaths();
+}
+
+interface Props {
+  season: Season;
+}
+
+const { season } = Astro.props;
+const { standings, bowlers, teamRosters } = season;
 
 const teamsByNum = standings.slice().sort((a, b) => a.num - b.num);
 ---
 
-<Layout title="Teams" activeNav="/teams">
+<Layout season={season} title="Teams" activeNav="/teams">
   <h2 class="text-2xl font-bold mb-6">Teams</h2>
 
   <div class="grid md:grid-cols-2 gap-6">

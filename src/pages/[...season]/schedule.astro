@@ -1,7 +1,17 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { schedule } from '../data/league';
-import { weekRecaps } from '../data/recaps';
+import Layout from '../../layouts/Layout.astro';
+import { seasonHref, seasonPaths, type Season, type WeekResult } from '../../data/seasons';
+
+export function getStaticPaths() {
+  return seasonPaths();
+}
+
+interface Props {
+  season: Season;
+}
+
+const { season } = Astro.props;
+const { schedule, weekRecaps } = season;
 
 const weeks = [...schedule];
 const recapWeeks = new Set(weekRecaps.map(r => r.week));
@@ -10,7 +20,7 @@ function isFuture(m: { score1: number; score2: number; wins1: number; wins2: num
   return m.score1 === 0 && m.score2 === 0 && m.wins1 === 0 && m.wins2 === 0;
 }
 
-function isWeekFuture(week: typeof schedule[number]) {
+function isWeekFuture(week: WeekResult) {
   return week.matches.length === 0 || week.matches.every(isFuture);
 }
 
@@ -19,7 +29,7 @@ const nextUpcoming = weeks.find(w => isWeekFuture(w));
 const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
 ---
 
-<Layout title="Schedule & Results" activeNav="/schedule">
+<Layout season={season} title="Schedule & Results" activeNav="/schedule">
   <h2 class="text-2xl font-bold mb-6">Schedule & Results</h2>
 
   <div class="flex items-center gap-3 mb-6">
@@ -32,7 +42,7 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
           value={week.week}
           selected={week.week === defaultWeek}
         >
-          Week {week.week} — {week.date}{isWeekFuture(week) ? ' (Upcoming)' : ''}
+          Week {week.week}: {week.date}{isWeekFuture(week) ? ' (Upcoming)' : ''}
         </option>
       ))}
     </select>
@@ -59,7 +69,7 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
             </div>
             <div class="flex items-center gap-3">
               {recapWeeks.has(week.week) && (
-                <a href={`/recaps/${week.week}`} class="text-xs text-primary hover:underline font-medium">
+                <a href={seasonHref(season, `/recaps/${week.week}`)} class="text-xs text-primary hover:underline font-medium">
                   Full Scoresheet &rarr;
                 </a>
               )}
@@ -68,7 +78,7 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
           </div>
           {week.matches.length === 0 ? (
             <div class="px-4 py-4 text-sm text-muted-foreground">
-              Position Round — matchups determined by standings
+              Position Round: matchups determined by standings
             </div>
           ) : (
             <div class="divide-y divide-border/50">
