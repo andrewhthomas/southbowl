@@ -51,6 +51,12 @@ export interface WeekResult {
   }[];
 }
 
+export interface ScheduledWeek {
+  week: number;
+  date: string;
+  pairs: [number, number][]; // team numbers by lane pair (1-2, 3-4, ...)
+}
+
 export interface BowlerScore {
   name: string;
   avg: number;

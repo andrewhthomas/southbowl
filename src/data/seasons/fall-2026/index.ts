@@ -1,6 +1,7 @@
 import type { SeasonData } from "../../types";
 import { deriveSeason } from "../../derive";
 import { weekRecaps } from "./recaps";
+import { scheduledWeeks } from "./schedule";
 
 // Current team names by number. A rename (team 6 was "Danger D!" on the week 1 sheet)
 // only needs updating here; recaps keep the name each sheet printed.
@@ -36,8 +37,9 @@ export default {
     time: "6:30 PM",
     startDate: "09/10/2026",
     lastUpdated: "09/17/2026",
+    totalWeeks: 15,
   },
   // Standings, bowler stats, rosters, and results are computed from the scoresheets
-  ...deriveSeason(weekRecaps, teamNames),
+  ...deriveSeason(weekRecaps, teamNames, scheduledWeeks),
   weekRecaps,
 } satisfies SeasonData;

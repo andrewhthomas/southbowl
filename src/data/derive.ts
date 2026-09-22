@@ -1,7 +1,7 @@
 // Builds a season's bowler list, standings, rosters, and schedule from its scoresheet
 // recaps, following LeagueSecretary's rules. Used by seasons that only have the
 // weekly scoresheet PDFs (no LeagueSecretary standings or bowler list to copy from).
-import type { Bowler, BowlerScore, Team, WeekRecap, WeekResult } from "./types";
+import type { Bowler, BowlerScore, ScheduledWeek, Team, WeekRecap, WeekResult } from "./types";
 
 const GAMES_PER_WEEK = 3;
 const POINTS_PER_MATCH = 4; // one per game plus one for series
@@ -33,13 +33,14 @@ function* teamWeeks(recaps: WeekRecap[]) {
   }
 }
 
-// teamNames maps team number to its current name, so renamed teams stay one team
-export function deriveSeason(recaps: WeekRecap[], teamNames: Record<number, string>) {
+// teamNames maps team number to its current name, so renamed teams stay one team.
+// scheduled fills in weeks that haven't been bowled yet.
+export function deriveSeason(recaps: WeekRecap[], teamNames: Record<number, string>, scheduled: ScheduledWeek[] = []) {
   return {
     bowlers: deriveBowlers(recaps, teamNames),
     teamRosters: deriveRosters(recaps, teamNames),
     standings: deriveStandings(recaps, teamNames),
-    schedule: deriveSchedule(recaps),
+    schedule: deriveSchedule(recaps, teamNames, scheduled),
   };
 }
 
@@ -119,8 +120,10 @@ function deriveStandings(recaps: WeekRecap[], teamNames: Record<number, string>)
     });
 }
 
-function deriveSchedule(recaps: WeekRecap[]): WeekResult[] {
-  return byWeek(recaps).map(r => ({
+// Bowled weeks come from the recaps; upcoming weeks list the scheduled pairings with no
+// scores (how the schedule pages recognize them). Position rounds have no pairings yet.
+function deriveSchedule(recaps: WeekRecap[], teamNames: Record<number, string>, scheduled: ScheduledWeek[]): WeekResult[] {
+  const bowled: WeekResult[] = recaps.map(r => ({
     week: r.week,
     date: r.date,
     matches: r.matches.map(m => ({
@@ -133,4 +136,18 @@ function deriveSchedule(recaps: WeekRecap[]): WeekResult[] {
       lanes: m.lanes,
     })),
   }));
+  const bowledWeeks = new Set(bowled.map(w => w.week));
+  const upcoming: WeekResult[] = scheduled
+    .filter(s => !bowledWeeks.has(s.week))
+    .map(s => ({
+      week: s.week,
+      date: s.date,
+      matches: s.pairs.map(([a, b], i) => ({
+        team1: teamNames[a] ?? `Team ${a}`,
+        team2: teamNames[b] ?? `Team ${b}`,
+        score1: 0, score2: 0, wins1: 0, wins2: 0,
+        lanes: [i * 2 + 1, i * 2 + 2] as [number, number],
+      })),
+    }));
+  return [...bowled, ...upcoming].sort((a, b) => a.week - b.week);
 }
