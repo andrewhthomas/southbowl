@@ -1,8 +1,9 @@
 # Southbowl
 
-A static stats site for a bowling league (currently "Thirsty Thursday Winter 2026" at
+A static stats site for a bowling league (currently "Thirsty Thursday Fall 2026" at
 Southbowl, 19 E Oregon Ave, Philadelphia). Standings, schedules, team and bowler pages,
 per-week recaps, and season statistics, all rendered from hand-maintained data files.
+Past seasons stay browsable from the season picker in the sidebar.
 
 Built with [Astro](https://astro.build) (static output), React 19 islands, and Tailwind v4,
 deployed to Cloudflare.
@@ -30,13 +31,17 @@ npm run dev      # Dev server at http://localhost:4321
 
 ```text
 src/
-├── data/        # All site content (see below)
-│   ├── league.ts    # League meta, bowlers, teams, standings, schedule, nav
-│   └── recaps.ts    # Per-week detailed scoresheets
+├── components/
+│   └── SeasonPicker.astro # Season dropdown
+├── data/            # All site content (see below)
+│   ├── seasons/<id>/  # One folder per season (recaps.ts, schedule.ts, index.ts)
+│   ├── seasons.ts     # Season registry (newest first = current), nav
+│   ├── derive.ts      # Computes standings/bowlers/schedule from recaps
+│   └── types.ts       # Shared data types
 ├── layouts/
 │   └── Layout.astro # Shared shell: sidebar/mobile nav, theme toggle
 ├── lib/utils.ts     # cn(), fmt(), toSlug(), icons
-├── pages/           # Routes (incl. dynamic bowlers/[slug] and recaps/[week])
+├── pages/[...season]/ # Routes; current season at /, past seasons at /<id>/
 └── styles/global.css # Tailwind v4 theme tokens (@theme) + light-mode overrides
 ```
 
@@ -44,10 +49,13 @@ src/
 
 The site has no CMS. Content is hand-entered from LeagueSecretary.com PDF scoresheets.
 
-To add a week of results, edit **two** files:
+To add a week of results for the current season:
 
-1. Add the week's matches to `schedule` in `src/data/league.ts`.
-2. Add the detailed scoresheet to `weekRecaps` in `src/data/recaps.ts`.
+1. Add the scoresheet to `weekRecaps` in `src/data/seasons/fall-2026/recaps.ts`.
+2. Bump `lastUpdated` in `src/data/seasons/fall-2026/index.ts`.
 
-Then bump `league.lastUpdated` in `src/data/league.ts` and refresh the affected
-`bowlers` / `standings` figures.
+Standings, bowler stats, rosters, and results are computed from the recaps. Upcoming
+matchups come from the lane assignments in `schedule.ts`.
+
+To start a new season, add a folder under `src/data/seasons/` and put it first in the
+list in `src/data/seasons.ts`. The previous season moves to `/<id>/` automatically.
