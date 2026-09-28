@@ -3,7 +3,8 @@
 A static stats site for a bowling league (currently "Thirsty Thursday Fall 2026" at
 Southbowl, 19 E Oregon Ave, Philadelphia). Standings, schedules, team and bowler pages,
 per-week recaps, and season statistics, all rendered from hand-maintained data files.
-Past seasons (Winter 2026, Fall 2025) stay browsable from the season picker in the sidebar.
+Past seasons (Winter 2026, Fall 2025) stay browsable from the season picker in the sidebar,
+playoff weeks included.
 
 Built with [Astro](https://astro.build) (static output), React 19 islands, and Tailwind v4,
 deployed to Cloudflare.

@@ -2,6 +2,230 @@ import type { WeekRecap } from "../../types";
 
 export const weekRecaps: WeekRecap[] = [
   {
+    week: 13,
+    date: "04/30/2026",
+    playoff: true,
+    matches: [
+      {
+        lanes: [3, 4],
+        team1: {
+          name: "LANE LIZARDS", num: 13,
+          bowlers: [
+            { name: "Mark Russell", avg: 174, hdcp: 41, games: [203, 215, 159], total: 577, hdcpTotal: 700 },
+            { name: "Jason Termini", avg: 172, hdcp: 43, games: [235, 139, 190], total: 564, hdcpTotal: 693 },
+            { name: "Joe Lee", avg: 185, hdcp: 31, games: [170, 162, 210], total: 542, hdcpTotal: 635 },
+            { name: "Chris Hammond", avg: 148, hdcp: 64, games: [175, 145, 160], total: 480, hdcpTotal: 672 },
+          ],
+          scratchByGame: [783, 661, 719], hdcpByGame: [179, 179, 179],
+          totalByGame: [962, 840, 898],
+          scratchTotal: 2163, hdcpTotal: 537, grandTotal: 2700,
+          pointsWon: 0,
+        },
+        team2: {
+          name: "DIRTY DAN AND THE PINHEADS", num: 15,
+          bowlers: [
+            { name: "Daniel Spivak", avg: 155, hdcp: 58, games: [132, 151, 118], total: 401, hdcpTotal: 575 },
+            { name: "Ezra", avg: 105, hdcp: 103, games: [109, 87, 121], total: 317, hdcpTotal: 626 },
+            { name: "Jacob", avg: 144, hdcp: 68, games: [125, 149, 133], total: 407, hdcpTotal: 611 },
+            { name: "Todd S", avg: 117, hdcp: 92, games: [123, 107, 107], total: 337, hdcpTotal: 613 },
+          ],
+          scratchByGame: [489, 494, 479], hdcpByGame: [321, 321, 321],
+          totalByGame: [810, 815, 800],
+          scratchTotal: 1462, hdcpTotal: 963, grandTotal: 2425,
+          pointsWon: 0,
+        },
+      },
+      {
+        lanes: [5, 6],
+        team1: {
+          name: "Minds In The Gutter", num: 7,
+          bowlers: [
+            { name: "David S", avg: 188, hdcp: 28, games: [166, 213, null], total: 379, hdcpTotal: 435 },
+            { name: "Vince F", avg: 156, hdcp: 57, games: [199, 154, 9], total: 362, hdcpTotal: 533 },
+            { name: "Ty M", avg: 126, hdcp: 84, games: [126, 132, null], total: 258, hdcpTotal: 426 },
+            { name: "Nick P", avg: 152, hdcp: 61, games: [149, 137, null], total: 286, hdcpTotal: 408 },
+          ],
+          scratchByGame: [640, 636, 0], hdcpByGame: [230, 230, 0],
+          totalByGame: [870, 866, 0],
+          scratchTotal: 1276, hdcpTotal: 460, grandTotal: 1736,
+          pointsWon: 0,
+        },
+        team2: {
+          name: "General Strike Now!", num: 16,
+          bowlers: [
+            { name: "Adam", avg: 134, hdcp: 77, games: [155, 111, 90], total: 356, hdcpTotal: 587 },
+            { name: "John", avg: 118, hdcp: 91, games: [96, 115, 119], total: 330, hdcpTotal: 603 },
+            { name: "Chris", avg: 116, hdcp: 93, games: [98, 141, 108], total: 347, hdcpTotal: 626 },
+            { name: "Buzz", avg: 109, hdcp: 99, games: [156, 110, 114], total: 380, hdcpTotal: 677 },
+          ],
+          scratchByGame: [505, 477, 431], hdcpByGame: [360, 360, 360],
+          totalByGame: [865, 837, 791],
+          scratchTotal: 1413, hdcpTotal: 1080, grandTotal: 2493,
+          pointsWon: 0,
+        },
+      },
+      {
+        lanes: [7, 8],
+        team1: {
+          name: "Bowl Movements", num: 8,
+          bowlers: [
+            { name: "Wes Graves", avg: 128, hdcp: 82, games: [117, 108, 139], total: 364, hdcpTotal: 610 },
+            { name: "Colin Lenton", avg: 150, hdcp: 63, games: [155, 153, 148], total: 456, hdcpTotal: 645 },
+            { name: "Dave Londres", avg: 142, hdcp: 70, games: [180, 149, 120], total: 449, hdcpTotal: 659 },
+            { name: "Michele Castro", avg: 110, hdcp: 99, games: [132, 132, 111], total: 375, hdcpTotal: 672 },
+          ],
+          scratchByGame: [584, 542, 518], hdcpByGame: [314, 314, 314],
+          totalByGame: [898, 856, 832],
+          scratchTotal: 1644, hdcpTotal: 942, grandTotal: 2586,
+          pointsWon: 0,
+        },
+        team2: {
+          name: "Danger D!", num: 4,
+          bowlers: [
+            { name: "Jack Woods", avg: 150, hdcp: 63, games: [155, 181, 143], total: 479, hdcpTotal: 668 },
+            { name: "Dante Falcone", avg: 111, hdcp: 98, games: [211, 146, 156], total: 513, hdcpTotal: 807 },
+            { name: "James Hong", avg: 149, hdcp: 63, games: [156, 103, 145], total: 404, hdcpTotal: 593 },
+            { name: "Teddy Blickwidel", avg: 134, hdcp: 77, games: [139, 131, 94], total: 364, hdcpTotal: 595 },
+          ],
+          scratchByGame: [661, 561, 538], hdcpByGame: [301, 301, 301],
+          totalByGame: [962, 862, 839],
+          scratchTotal: 1760, hdcpTotal: 903, grandTotal: 2663,
+          pointsWon: 0,
+        },
+      },
+      {
+        lanes: [9, 10],
+        team1: {
+          name: "Pin Pals", num: 10,
+          bowlers: [
+            { name: "Dewey", avg: 160, hdcp: 54, games: [133, 170, 124], total: 427, hdcpTotal: 589 },
+            { name: "Todd", avg: 154, hdcp: 59, games: [161, 128, 162], total: 451, hdcpTotal: 628 },
+            { name: "Ryan", avg: 193, hdcp: 24, games: [167, 221, 215], total: 603, hdcpTotal: 675 },
+            { name: "Shaun Betit", avg: 219, hdcp: 0, games: [224, 235, 246], total: 705, hdcpTotal: 705 },
+          ],
+          scratchByGame: [685, 754, 747], hdcpByGame: [137, 137, 137],
+          totalByGame: [822, 891, 884],
+          scratchTotal: 2186, hdcpTotal: 411, grandTotal: 2597,
+          pointsWon: 0,
+        },
+        team2: {
+          name: "Oh, That Team!", num: 11,
+          bowlers: [
+            { name: "Lauren R", avg: 129, hdcp: 81, games: [105, 132, 103], total: 340, hdcpTotal: 583 },
+            { name: "Bev B", avg: 152, hdcp: 61, games: [131, 139, 134], total: 404, hdcpTotal: 587 },
+            { name: "Michelle B", avg: 133, hdcp: 78, games: [143, 101, 157], total: 401, hdcpTotal: 635 },
+            { name: "Mario C", avg: 122, hdcp: 88, games: [111, 107, 120], total: 338, hdcpTotal: 602 },
+          ],
+          scratchByGame: [490, 479, 514], hdcpByGame: [308, 308, 308],
+          totalByGame: [798, 787, 822],
+          scratchTotal: 1483, hdcpTotal: 924, grandTotal: 2407,
+          pointsWon: 0,
+        },
+      },
+    ],
+  },
+  {
+    week: 14,
+    date: "05/14/2026",
+    playoff: true,
+    matches: [
+      {
+        lanes: [3, 4],
+        team1: {
+          name: "LANE LIZARDS", num: 13,
+          bowlers: [
+            { name: "Mark Russell", avg: 176, hdcp: 39, games: [210, 175, 177], total: 562, hdcpTotal: 679 },
+            { name: "Jason Termini", avg: 173, hdcp: 42, games: [181, 172, 171], total: 524, hdcpTotal: 650 },
+            { name: "Joe Lee", avg: 184, hdcp: 32, games: [null, null, null], total: 522, hdcpTotal: 618 },
+            { name: "Chris Hammond", avg: 149, hdcp: 63, games: [174, 114, 206], total: 494, hdcpTotal: 683 },
+          ],
+          scratchByGame: [739, 635, 728], hdcpByGame: [176, 176, 176],
+          totalByGame: [915, 811, 904],
+          scratchTotal: 2102, hdcpTotal: 528, grandTotal: 2630,
+          pointsWon: 0,
+        },
+        team2: {
+          name: "Danger D!", num: 4,
+          bowlers: [
+            { name: "Jack Woods", avg: 151, hdcp: 62, games: [135, 198, 151], total: 484, hdcpTotal: 670 },
+            { name: "Dante Falcone", avg: 117, hdcp: 92, games: [122, 137, 121], total: 380, hdcpTotal: 656 },
+            { name: "James Hong", avg: 147, hdcp: 65, games: [137, 197, 169], total: 503, hdcpTotal: 698 },
+            { name: "Teddy Blickwidel", avg: 133, hdcp: 78, games: [135, 133, 165], total: 433, hdcpTotal: 667 },
+          ],
+          scratchByGame: [529, 665, 606], hdcpByGame: [297, 297, 297],
+          totalByGame: [826, 962, 903],
+          scratchTotal: 1800, hdcpTotal: 891, grandTotal: 2691,
+          pointsWon: 0,
+        },
+      },
+      {
+        lanes: [5, 6],
+        team1: {
+          name: "Minds In The Gutter", num: 7,
+          bowlers: [
+            { name: "David S", avg: 188, hdcp: 28, games: [170, 172, 174], total: 516, hdcpTotal: 600 },
+            { name: "Vince F", avg: 157, hdcp: 56, games: [191, 183, 158], total: 532, hdcpTotal: 700 },
+            { name: "Ty M", avg: 126, hdcp: 84, games: [158, 131, 131], total: 420, hdcpTotal: 672 },
+            { name: "Nick P", avg: 151, hdcp: 62, games: [157, 139, 139], total: 435, hdcpTotal: 621 },
+          ],
+          scratchByGame: [676, 625, 602], hdcpByGame: [230, 230, 230],
+          totalByGame: [906, 855, 832],
+          scratchTotal: 1903, hdcpTotal: 690, grandTotal: 2593,
+          pointsWon: 0,
+        },
+        team2: {
+          name: "Pin Pals", num: 10,
+          bowlers: [
+            { name: "Dewey", avg: 158, hdcp: 55, games: [161, 146, 119], total: 426, hdcpTotal: 591 },
+            { name: "Todd", avg: 153, hdcp: 60, games: [116, 209, 168], total: 493, hdcpTotal: 673 },
+            { name: "Ryan", avg: 194, hdcp: 23, games: [204, 247, 164], total: 615, hdcpTotal: 684 },
+            { name: "Shaun Betit", avg: 227, hdcp: 0, games: [206, 246, 285], total: 737, hdcpTotal: 737 },
+          ],
+          scratchByGame: [687, 848, 736], hdcpByGame: [138, 138, 138],
+          totalByGame: [825, 986, 874],
+          scratchTotal: 2271, hdcpTotal: 414, grandTotal: 2685,
+          pointsWon: 0,
+        },
+      },
+    ],
+  },
+  {
+    week: 15,
+    date: "05/21/2026",
+    playoff: true,
+    matches: [
+      {
+        lanes: [5, 6],
+        team1: {
+          name: "LANE LIZARDS", num: 13,
+          bowlers: [
+            { name: "Mark Russell", avg: 177, hdcp: 38, games: [199, 219, 144], total: 562, hdcpTotal: 676 },
+            { name: "Jason Termini", avg: 173, hdcp: 42, games: [182, 160, 127], total: 469, hdcpTotal: 595 },
+            { name: "Joe Lee", avg: 184, hdcp: 32, games: [208, 200, 135], total: 543, hdcpTotal: 639 },
+            { name: "Chris Hammond", avg: 151, hdcp: 62, games: [236, 157, 208], total: 601, hdcpTotal: 787 },
+          ],
+          scratchByGame: [825, 736, 614], hdcpByGame: [174, 174, 174],
+          totalByGame: [999, 910, 788],
+          scratchTotal: 2175, hdcpTotal: 522, grandTotal: 2697,
+          pointsWon: 0,
+        },
+        team2: {
+          name: "Pin Pals", num: 10,
+          bowlers: [
+            { name: "Dewey", avg: 157, hdcp: 56, games: [155, 156, 115], total: 426, hdcpTotal: 594 },
+            { name: "Todd", avg: 154, hdcp: 59, games: [103, 191, 158], total: 452, hdcpTotal: 629 },
+            { name: "Ryan", avg: 195, hdcp: 22, games: [226, 155, 195], total: 576, hdcpTotal: 642 },
+            { name: "Shaun Betit", avg: 233, hdcp: 0, games: [226, 258, 224], total: 708, hdcpTotal: 708 },
+          ],
+          scratchByGame: [710, 760, 692], hdcpByGame: [137, 137, 137],
+          totalByGame: [847, 897, 829],
+          scratchTotal: 2162, hdcpTotal: 411, grandTotal: 2573,
+          pointsWon: 0,
+        },
+      },
+    ],
+  },
+  {
     week: 12,
     date: "04/23/2026",
     matches: [
