@@ -49,6 +49,7 @@ export interface WeekResult {
     wins2: number;
     lanes?: [number, number];
   }[];
+  playoff?: boolean;
 }
 
 export interface ScheduledWeek {
@@ -91,6 +92,7 @@ export interface WeekRecap {
   week: number;
   date: string;
   matches: DetailedMatch[];
+  playoff?: boolean; // playoff weeks count toward pins and averages, but award no points
 }
 
 export interface SeasonData {

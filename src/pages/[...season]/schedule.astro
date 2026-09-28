@@ -66,6 +66,7 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
             <div class="flex items-center gap-2">
               <h3 class="font-semibold">Week {week.week}</h3>
               {allFuture && <span class="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded uppercase font-bold">Upcoming</span>}
+              {week.playoff && <span class="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Playoff</span>}
             </div>
             <div class="flex items-center gap-3">
               {recapWeeks.has(week.week) && (

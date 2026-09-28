@@ -27,8 +27,8 @@ function byWeek(recaps: WeekRecap[]): WeekRecap[] {
 function* teamWeeks(recaps: WeekRecap[]) {
   for (const recap of byWeek(recaps)) {
     for (const match of recap.matches) {
-      yield match.team1;
-      yield match.team2;
+      yield { team: match.team1, recap };
+      yield { team: match.team2, recap };
     }
   }
 }
@@ -46,7 +46,7 @@ export function deriveSeason(recaps: WeekRecap[], teamNames: Record<number, stri
 
 function deriveBowlers(recaps: WeekRecap[], teamNames: Record<number, string>): Bowler[] {
   const stats = new Map<string, Omit<Bowler, "average" | "handicap">>();
-  for (const team of teamWeeks(recaps)) {
+  for (const { team } of teamWeeks(recaps)) {
     for (const b of team.bowlers) {
       let s = stats.get(b.name);
       if (!s) {
@@ -77,7 +77,7 @@ function deriveBowlers(recaps: WeekRecap[], teamNames: Record<number, string>): 
 // team's current name (drops the old roster a renamed team's sheet still printed).
 function deriveRosters(recaps: WeekRecap[], teamNames: Record<number, string>): Record<string, string[]> {
   const latest = new Map<string, { num: number; printedName: string }>();
-  for (const team of teamWeeks(recaps)) {
+  for (const { team } of teamWeeks(recaps)) {
     for (const b of team.bowlers) latest.set(b.name, { num: team.num, printedName: team.name });
   }
   const rosters: Record<string, string[]> = Object.fromEntries(Object.values(teamNames).map(n => [n, []]));
@@ -88,36 +88,53 @@ function deriveRosters(recaps: WeekRecap[], teamNames: Record<number, string>): 
   return rosters;
 }
 
+// A team's record runs from the week it first bowls (teams that join late are not charged
+// for earlier weeks), playoff weeks award no points, and LeagueSecretary ranks on % won.
+// Pinfall and highs count every week, playoffs included.
 function deriveStandings(recaps: WeekRecap[], teamNames: Record<number, string>): Team[] {
-  const totals = new Map<number, { wins: number; weeks: number; pinfall: number; hdcpPins: number; highGame: number; highSeries: number }>();
-  for (const team of teamWeeks(recaps)) {
-    const t = totals.get(team.num) ?? { wins: 0, weeks: 0, pinfall: 0, hdcpPins: 0, highGame: 0, highSeries: 0 };
-    t.wins += team.pointsWon;
-    t.weeks += 1;
+  interface Tally {
+    wins: number; pinfall: number; hdcpPins: number; highGame: number; highSeries: number;
+    regularWeeks: { week: number; points: number; scored: boolean }[]; playoffsBowled: number;
+  }
+  const totals = new Map<number, Tally>();
+  for (const { team, recap } of teamWeeks(recaps)) {
+    const t = totals.get(team.num) ?? { wins: 0, pinfall: 0, hdcpPins: 0, highGame: 0, highSeries: 0, regularWeeks: [], playoffsBowled: 0 };
     t.pinfall += team.scratchTotal;
     t.hdcpPins += team.grandTotal;
     t.highGame = Math.max(t.highGame, ...team.scratchByGame);
     t.highSeries = Math.max(t.highSeries, team.scratchTotal);
+    if (recap.playoff) {
+      if (team.scratchTotal > 0) t.playoffsBowled += 1;
+    } else {
+      t.regularWeeks.push({ week: recap.week, points: team.pointsWon, scored: team.scratchTotal > 0 });
+    }
     totals.set(team.num, t);
   }
+
   return [...totals.entries()]
-    // LeagueSecretary breaks ties on total pins with handicap
-    .sort(([, a], [, b]) => b.wins - a.wins || b.hdcpPins - a.hdcpPins)
-    .map(([num, t], i) => {
-      const losses = t.weeks * POINTS_PER_MATCH - t.wins;
+    .filter(([num]) => teamNames[num])
+    .map(([num, t]) => {
+      const debut = t.regularWeeks.find(w => w.scored)?.week;
+      const counted = t.regularWeeks.filter(w => debut === undefined || w.week >= debut);
+      const wins = counted.reduce((sum, w) => sum + w.points, 0);
+      const losses = counted.length * POINTS_PER_MATCH - wins;
+      const weeksBowled = counted.length + t.playoffsBowled;
       return {
-        rank: i + 1,
         num,
-        name: teamNames[num] ?? `Team ${num}`,
-        wins: t.wins,
+        name: teamNames[num],
+        wins,
         losses,
-        pct: t.weeks ? t.wins / (t.wins + losses) : 0,
-        avg: t.weeks ? Math.floor(t.pinfall / (t.weeks * GAMES_PER_WEEK)) : 0,
+        pct: wins + losses ? wins / (wins + losses) : 0,
+        avg: weeksBowled ? Math.floor(t.pinfall / (weeksBowled * GAMES_PER_WEEK)) : 0,
         pinfall: t.pinfall,
         highGame: t.highGame,
         highSeries: t.highSeries,
+        hdcpPins: t.hdcpPins,
       };
-    });
+    })
+    // ranked on % won, ties broken on total pins with handicap
+    .sort((a, b) => b.pct - a.pct || b.hdcpPins - a.hdcpPins)
+    .map(({ hdcpPins, ...team }, i) => ({ rank: i + 1, ...team }));
 }
 
 // Bowled weeks come from the recaps; upcoming weeks list the scheduled pairings with no
@@ -126,6 +143,7 @@ function deriveSchedule(recaps: WeekRecap[], teamNames: Record<number, string>, 
   const bowled: WeekResult[] = recaps.map(r => ({
     week: r.week,
     date: r.date,
+    ...(r.playoff ? { playoff: true } : {}),
     matches: r.matches.map(m => ({
       team1: m.team1.name,
       team2: m.team2.name,
