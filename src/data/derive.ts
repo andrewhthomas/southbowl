@@ -24,29 +24,47 @@ function byWeek(recaps: WeekRecap[]): WeekRecap[] {
   return [...recaps].sort((a, b) => a.week - b.week);
 }
 
-function* teamWeeks(recaps: WeekRecap[]) {
+/** Maps the team number printed on a week's sheet to the team it belongs to today.
+ *  Return null for a team that has left the league. */
+export type TeamIdentity = (week: number, printedNum: number) => number | null;
+
+export interface SeasonInput {
+  recaps: WeekRecap[];
+  /** Team number to current name. Teams missing here are left out of the standings. */
+  teamNames: Record<number, string>;
+  /** Fills in weeks that have not been bowled yet. */
+  scheduled?: ScheduledWeek[];
+  /** Needed only when the league reused team numbers mid-season. */
+  identity?: TeamIdentity;
+  /** Overrides the week a team's won-lost record starts, for teams the league charges for
+   *  weeks before they first bowled (a forfeit) or excuses for weeks before they joined. */
+  recordStarts?: Record<number, number>;
+}
+
+function* teamWeeks(recaps: WeekRecap[], identity?: TeamIdentity) {
   for (const recap of byWeek(recaps)) {
     for (const match of recap.matches) {
-      yield { team: match.team1, recap };
-      yield { team: match.team2, recap };
+      for (const team of [match.team1, match.team2]) {
+        const num = identity ? identity(recap.week, team.num) : team.num;
+        if (num === null) continue; // team is no longer in the league
+        yield { team, recap, num };
+      }
     }
   }
 }
 
-// teamNames maps team number to its current name, so renamed teams stay one team.
-// scheduled fills in weeks that haven't been bowled yet.
-export function deriveSeason(recaps: WeekRecap[], teamNames: Record<number, string>, scheduled: ScheduledWeek[] = []) {
+export function deriveSeason({ recaps, teamNames, scheduled = [], identity, recordStarts }: SeasonInput) {
   return {
-    bowlers: deriveBowlers(recaps, teamNames),
-    teamRosters: deriveRosters(recaps, teamNames),
-    standings: deriveStandings(recaps, teamNames),
+    bowlers: deriveBowlers(recaps, teamNames, identity),
+    teamRosters: deriveRosters(recaps, teamNames, identity),
+    standings: deriveStandings(recaps, teamNames, identity, recordStarts),
     schedule: deriveSchedule(recaps, teamNames, scheduled),
   };
 }
 
-function deriveBowlers(recaps: WeekRecap[], teamNames: Record<number, string>): Bowler[] {
+function deriveBowlers(recaps: WeekRecap[], teamNames: Record<number, string>, identity?: TeamIdentity): Bowler[] {
   const stats = new Map<string, Omit<Bowler, "average" | "handicap">>();
-  for (const { team } of teamWeeks(recaps)) {
+  for (const { team, num } of teamWeeks(recaps, identity)) {
     for (const b of team.bowlers) {
       let s = stats.get(b.name);
       if (!s) {
@@ -56,7 +74,7 @@ function deriveBowlers(recaps: WeekRecap[], teamNames: Record<number, string>): 
         };
         stats.set(b.name, s);
       }
-      s.team = teamNames[team.num] ?? team.name;
+      s.team = teamNames[num] ?? team.name;
       const bowled = b.games.filter((g): g is number => g !== null);
       const series = bowled.reduce((sum, g) => sum + g, 0);
       s.games += bowled.length;
@@ -75,10 +93,10 @@ function deriveBowlers(recaps: WeekRecap[], teamNames: Record<number, string>): 
 
 // A bowler belongs to the team they were last listed on, as long as that sheet used the
 // team's current name (drops the old roster a renamed team's sheet still printed).
-function deriveRosters(recaps: WeekRecap[], teamNames: Record<number, string>): Record<string, string[]> {
+function deriveRosters(recaps: WeekRecap[], teamNames: Record<number, string>, identity?: TeamIdentity): Record<string, string[]> {
   const latest = new Map<string, { num: number; printedName: string }>();
-  for (const { team } of teamWeeks(recaps)) {
-    for (const b of team.bowlers) latest.set(b.name, { num: team.num, printedName: team.name });
+  for (const { team, num } of teamWeeks(recaps, identity)) {
+    for (const b of team.bowlers) latest.set(b.name, { num, printedName: team.name });
   }
   const rosters: Record<string, string[]> = Object.fromEntries(Object.values(teamNames).map(n => [n, []]));
   for (const [name, { num, printedName }] of latest) {
@@ -91,14 +109,14 @@ function deriveRosters(recaps: WeekRecap[], teamNames: Record<number, string>): 
 // A team's record runs from the week it first bowls (teams that join late are not charged
 // for earlier weeks), playoff weeks award no points, and LeagueSecretary ranks on % won.
 // Pinfall and highs count every week, playoffs included.
-function deriveStandings(recaps: WeekRecap[], teamNames: Record<number, string>): Team[] {
+function deriveStandings(recaps: WeekRecap[], teamNames: Record<number, string>, identity?: TeamIdentity, recordStarts: Record<number, number> = {}): Team[] {
   interface Tally {
     wins: number; pinfall: number; hdcpPins: number; highGame: number; highSeries: number;
     regularWeeks: { week: number; points: number; scored: boolean }[]; playoffsBowled: number;
   }
   const totals = new Map<number, Tally>();
-  for (const { team, recap } of teamWeeks(recaps)) {
-    const t = totals.get(team.num) ?? { wins: 0, pinfall: 0, hdcpPins: 0, highGame: 0, highSeries: 0, regularWeeks: [], playoffsBowled: 0 };
+  for (const { team, recap, num } of teamWeeks(recaps, identity)) {
+    const t = totals.get(num) ?? { wins: 0, pinfall: 0, hdcpPins: 0, highGame: 0, highSeries: 0, regularWeeks: [], playoffsBowled: 0 };
     t.pinfall += team.scratchTotal;
     t.hdcpPins += team.grandTotal;
     t.highGame = Math.max(t.highGame, ...team.scratchByGame);
@@ -108,13 +126,13 @@ function deriveStandings(recaps: WeekRecap[], teamNames: Record<number, string>)
     } else {
       t.regularWeeks.push({ week: recap.week, points: team.pointsWon, scored: team.scratchTotal > 0 });
     }
-    totals.set(team.num, t);
+    totals.set(num, t);
   }
 
   return [...totals.entries()]
     .filter(([num]) => teamNames[num])
     .map(([num, t]) => {
-      const debut = t.regularWeeks.find(w => w.scored)?.week;
+      const debut = recordStarts[num] ?? t.regularWeeks.find(w => w.scored)?.week;
       const counted = t.regularWeeks.filter(w => debut === undefined || w.week >= debut);
       const wins = counted.reduce((sum, w) => sum + w.points, 0);
       const losses = counted.length * POINTS_PER_MATCH - wins;

@@ -40,6 +40,6 @@ export default {
     totalWeeks: 15,
   },
   // Standings, bowler stats, rosters, and results are computed from the scoresheets
-  ...deriveSeason(weekRecaps, teamNames, scheduledWeeks),
+  ...deriveSeason({ recaps: weekRecaps, teamNames, scheduled: scheduledWeeks }),
   weekRecaps,
 } satisfies SeasonData;
