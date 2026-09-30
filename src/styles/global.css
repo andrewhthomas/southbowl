@@ -53,10 +53,22 @@ body {
 }
 
 /* Display cutouts and the home indicator. These resolve to 0 in an ordinary
-   browser window, so they only take effect where there is something to clear. */
+   browser window, so they only take effect where there is something to clear.
+
+   .safe-x sets padding outright, and these rules load after Tailwind, so it
+   WINS over a px-* utility on the same element and flattens the gutter to 0.
+   Use it only on elements with no horizontal padding of their own; where an
+   element needs a gutter too, use .px-safe. */
 .safe-x {
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+/* Standard 1rem gutter, plus the cutout when there is one. Matches the p-4 on
+   the main content so the header lines up with the page below it. */
+.px-safe {
+  padding-left: calc(1rem + env(safe-area-inset-left));
+  padding-right: calc(1rem + env(safe-area-inset-right));
 }
 
 .safe-bottom {
