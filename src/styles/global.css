@@ -59,6 +59,21 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Keep page content clear of the fixed mobile tab bar */
+.pb-tabbar {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .pb-tabbar {
+    padding-bottom: 2rem;
+  }
+}
+
 /* Installed-app polish: no rubber-band scroll exposing the page background, and
    no grey flash on tap. Scoped to standalone so browser tabs keep pull-to-refresh. */
 @media (display-mode: standalone) {

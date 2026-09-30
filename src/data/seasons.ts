@@ -113,11 +113,12 @@ function computeTopBowlers(bowlers: Bowler[], schedule: WeekResult[]) {
   };
 }
 
+// `short` is what the mobile tab bar shows, where six labels share the screen width.
 export const navItems = [
-  { label: "Dashboard", href: "/" },
-  { label: "Schedule", href: "/schedule" },
-  { label: "Standings", href: "/standings" },
-  { label: "Teams", href: "/teams" },
-  { label: "Bowlers", href: "/bowlers" },
-  { label: "Statistics", href: "/statistics" },
+  { label: "Dashboard", short: "Home", href: "/" },
+  { label: "Schedule", short: "Schedule", href: "/schedule" },
+  { label: "Standings", short: "Standings", href: "/standings" },
+  { label: "Teams", short: "Teams", href: "/teams" },
+  { label: "Bowlers", short: "Bowlers", href: "/bowlers" },
+  { label: "Statistics", short: "Stats", href: "/statistics" },
 ];

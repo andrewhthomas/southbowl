@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import SeasonPicker from '../components/SeasonPicker.astro';
 import { currentSeason, navItems, seasonHref, type Season } from '../data/seasons';
+import { navIcons } from '../lib/utils';
 
 interface Props {
   season: Season;
@@ -78,36 +79,8 @@ const href = (path: string) => seasonHref(season, path);
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
           </button>
-          <button id="mobile-menu-btn" class="relative p-2 rounded-md hover:bg-secondary w-10 h-10" aria-label="Toggle menu">
-            <svg class="w-6 h-6 menu-icon-open absolute inset-2 transition-all duration-300 ease-in-out opacity-100 rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg class="w-6 h-6 menu-icon-close absolute inset-2 transition-all duration-300 ease-in-out opacity-0 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
       </div>
-      <nav id="mobile-menu" class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out mt-3 pt-3 border-t border-border">
-        <ul class="space-y-1 overflow-hidden">
-          {navItems.map(item => (
-            <li>
-              <a
-                href={href(item.href)}
-                data-astro-prefetch="viewport"
-                class:list={[
-                  'block px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                  activeNav === item.href
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
-                ]}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
     </header>
 
     <div class="flex">
@@ -168,7 +141,7 @@ const href = (path: string) => seasonHref(season, path);
 
       <!-- Main content -->
       <main class="flex-1 min-h-screen safe-x">
-        <div class="p-4 lg:p-8 max-w-7xl">
+        <div class="p-4 lg:p-8 max-w-7xl pb-tabbar">
           {!season.isCurrent && (
             <div class="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm">
               <p class="text-muted-foreground">
@@ -183,6 +156,33 @@ const href = (path: string) => seasonHref(season, path);
         </div>
       </main>
     </div>
+
+    <!-- Mobile tab bar: every section one tap away, the way an app does it -->
+    <nav
+      class="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur-sm safe-x safe-bottom"
+      aria-label="Sections"
+    >
+      <ul class="grid grid-cols-6">
+        {navItems.map(item => (
+          <li>
+            <a
+              href={href(item.href)}
+              data-astro-prefetch="viewport"
+              aria-current={activeNav === item.href ? 'page' : undefined}
+              class:list={[
+                'flex flex-col items-center gap-0.5 px-0.5 pt-2 pb-1.5 text-[10px] font-medium transition-colors',
+                activeNav === item.href
+                  ? 'text-primary'
+                  : 'text-muted-foreground active:text-foreground',
+              ]}
+            >
+              <Fragment set:html={navIcons[item.href]} />
+              <span class="w-full truncate text-center">{item.short}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
 
     <script>
       function updateIcons() {
@@ -209,27 +209,6 @@ const href = (path: string) => seasonHref(season, path);
       function bindPage() {
         document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
         document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
-
-        const btn = document.getElementById('mobile-menu-btn');
-        const menu = document.getElementById('mobile-menu');
-        const iconOpen = btn?.querySelector('.menu-icon-open') as HTMLElement | null;
-        const iconClose = btn?.querySelector('.menu-icon-close') as HTMLElement | null;
-        let menuOpen = false;
-        btn?.addEventListener('click', () => {
-          menuOpen = !menuOpen;
-          if (menu) {
-            menu.style.gridTemplateRows = menuOpen ? '1fr' : '0fr';
-          }
-          if (iconOpen) {
-            iconOpen.style.opacity = menuOpen ? '0' : '1';
-            iconOpen.style.transform = menuOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
-          }
-          if (iconClose) {
-            iconClose.style.opacity = menuOpen ? '1' : '0';
-            iconClose.style.transform = menuOpen ? 'rotate(0deg)' : 'rotate(90deg)';
-          }
-        });
-
         updateIcons();
       }
 
