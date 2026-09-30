@@ -36,7 +36,7 @@ const teamsByNum = standings.slice().sort((a, b) => a.num - b.num);
       });
 
       return (
-        <div class="bg-card border border-border rounded-lg">
+        <div id={`team-${team.num}`} class="bg-card border border-border rounded-lg scroll-mt-4 target:ring-2 target:ring-primary">
           <div class="px-4 py-3 border-b border-border">
             <div class="flex items-center justify-between">
               <h3 class="font-semibold">{team.name}</h3>

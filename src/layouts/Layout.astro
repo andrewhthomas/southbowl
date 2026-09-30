@@ -2,8 +2,9 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import SeasonPicker from '../components/SeasonPicker.astro';
-import { currentSeason, navItems, seasonHref, type Season } from '../data/seasons';
-import { navIcons } from '../lib/utils';
+import { currentSeason, navItems, seasons, seasonHref, type Season } from '../data/seasons';
+import CommandPalette, { type PaletteItem } from '../components/CommandPalette';
+import { navIcons, toSlug } from '../lib/utils';
 
 interface Props {
   season: Season;
@@ -15,6 +16,31 @@ const { season, activeNav = '/' } = Astro.props;
 const { league } = season;
 const title = Astro.props.title ?? league.name;
 const href = (path: string) => seasonHref(season, path);
+
+// Everything the command palette can jump to, flattened at build time so the
+// island ships labels and URLs rather than the whole season.
+const paletteItems: PaletteItem[] = [
+  ...navItems.map(item => ({ group: 'Pages', label: item.label, href: href(item.href) })),
+  ...season.bowlers.map(b => ({
+    group: 'Bowlers',
+    label: b.name,
+    sub: b.team,
+    href: href(`/bowlers/${toSlug(b.name)}`),
+  })),
+  ...season.standings.map(t => ({
+    group: 'Teams',
+    label: t.name,
+    sub: `#${t.num}`,
+    href: href(`/teams#team-${t.num}`),
+  })),
+  ...season.weekRecaps.map(r => ({
+    group: 'Weeks',
+    label: `Week ${r.week}`,
+    sub: r.date,
+    href: href(`/recaps/${r.week}`),
+  })),
+  ...seasons.map(s => ({ group: 'Seasons', label: s.label, href: seasonHref(s, activeNav) })),
+];
 ---
 
 <html lang="en">
@@ -69,6 +95,12 @@ const href = (path: string) => seasonHref(season, path);
           <SeasonPicker season={season} activeNav={activeNav} compact />
         </div>
         <div class="flex items-center gap-1">
+          <button id="palette-open-mobile" class="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" aria-label="Search">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <path stroke-linecap="round" d="m21 21-4.3-4.3" />
+            </svg>
+          </button>
           <button id="theme-toggle-mobile" class="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" aria-label="Toggle theme">
             <!-- Sun icon (shown in dark mode) -->
             <svg class="w-5 h-5 theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,6 +133,17 @@ const href = (path: string) => seasonHref(season, path);
           <div class="mt-3">
             <SeasonPicker season={season} activeNav={activeNav} />
           </div>
+          <button
+            id="palette-open-desktop"
+            class="mt-3 w-full flex items-center gap-2 bg-secondary border border-border rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <path stroke-linecap="round" d="m21 21-4.3-4.3" />
+            </svg>
+            <span class="flex-1 text-left">Search</span>
+            <kbd class="text-[10px] border border-border rounded px-1 py-0.5">&#8984;K</kbd>
+          </button>
           <div class="mt-3 space-y-1 text-xs text-muted-foreground">
             <p>{league.address}</p>
             <p>{league.phone}</p>
@@ -157,6 +200,8 @@ const href = (path: string) => seasonHref(season, path);
       </main>
     </div>
 
+    <CommandPalette client:idle items={paletteItems} />
+
     <!-- Mobile tab bar: every section one tap away, the way an app does it -->
     <nav
       class="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur-sm safe-x safe-bottom"
@@ -209,6 +254,11 @@ const href = (path: string) => seasonHref(season, path);
       function bindPage() {
         document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
         document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
+
+        const openPalette = () => document.dispatchEvent(new CustomEvent('palette:open'));
+        document.getElementById('palette-open-desktop')?.addEventListener('click', openPalette);
+        document.getElementById('palette-open-mobile')?.addEventListener('click', openPalette);
+
         updateIcons();
       }
 
