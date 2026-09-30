@@ -185,7 +185,10 @@ const chevron = icons.chevron;
         }
       });
     }
-    handleBreakpoint();
+    // This module body runs once, but it queries the DOM fresh on every call, so the
+    // breakpoint listener keeps working across router navigations. astro:page-load
+    // covers the first load and each swap of a new statistics page.
     mq.addEventListener('change', handleBreakpoint);
+    document.addEventListener('astro:page-load', handleBreakpoint);
   </script>
 </Layout>

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import SeasonPicker from '../components/SeasonPicker.astro';
 import { currentSeason, navItems, seasonHref, type Season } from '../data/seasons';
 
@@ -21,11 +22,19 @@ const href = (path: string) => seasonHref(season, path);
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <title>{title}{!season.isCurrent && ` (${season.label})`} | {league.center}</title>
-    <!-- Prevent flash: apply theme before paint -->
+    <ClientRouter />
+    <!-- Prevent flash: apply the theme before paint, and again after every view
+         transition, since the swap copies <html> attributes from the incoming
+         page and would drop the .light class. This script is identical on every
+         page, so the router never re-runs it and the listener is added once. -->
     <script is:inline>
       (function() {
-        const theme = localStorage.getItem('theme') || 'dark';
-        if (theme === 'light') document.documentElement.classList.add('light');
+        function applyTheme() {
+          const theme = localStorage.getItem('theme') || 'dark';
+          document.documentElement.classList.toggle('light', theme === 'light');
+        }
+        applyTheme();
+        document.addEventListener('astro:after-swap', applyTheme);
       })();
     </script>
   </head>
@@ -66,6 +75,7 @@ const href = (path: string) => seasonHref(season, path);
             <li>
               <a
                 href={href(item.href)}
+                data-astro-prefetch="viewport"
                 class:list={[
                   'block px-3 py-2 rounded-md text-sm font-medium transition-colors',
                   activeNav === item.href
@@ -112,6 +122,7 @@ const href = (path: string) => seasonHref(season, path);
               <li>
                 <a
                   href={href(item.href)}
+                  data-astro-prefetch="viewport"
                   class:list={[
                     'block px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
                     activeNav === item.href
@@ -171,31 +182,37 @@ const href = (path: string) => seasonHref(season, path);
         updateIcons();
       }
 
-      document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
-      document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
+      // Bundled module scripts run once, so every listener on an element has to be
+      // re-attached after the router swaps in a new page. astro:page-load fires on
+      // the first load and after each navigation.
+      function bindPage() {
+        document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
+        document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
 
-      const btn = document.getElementById('mobile-menu-btn');
-      const menu = document.getElementById('mobile-menu');
-      const iconOpen = btn?.querySelector('.menu-icon-open') as HTMLElement | null;
-      const iconClose = btn?.querySelector('.menu-icon-close') as HTMLElement | null;
-      let menuOpen = false;
-      btn?.addEventListener('click', () => {
-        menuOpen = !menuOpen;
-        if (menu) {
-          menu.style.gridTemplateRows = menuOpen ? '1fr' : '0fr';
-        }
-        if (iconOpen) {
-          iconOpen.style.opacity = menuOpen ? '0' : '1';
-          iconOpen.style.transform = menuOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
-        }
-        if (iconClose) {
-          iconClose.style.opacity = menuOpen ? '1' : '0';
-          iconClose.style.transform = menuOpen ? 'rotate(0deg)' : 'rotate(90deg)';
-        }
-      });
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        const iconOpen = btn?.querySelector('.menu-icon-open') as HTMLElement | null;
+        const iconClose = btn?.querySelector('.menu-icon-close') as HTMLElement | null;
+        let menuOpen = false;
+        btn?.addEventListener('click', () => {
+          menuOpen = !menuOpen;
+          if (menu) {
+            menu.style.gridTemplateRows = menuOpen ? '1fr' : '0fr';
+          }
+          if (iconOpen) {
+            iconOpen.style.opacity = menuOpen ? '0' : '1';
+            iconOpen.style.transform = menuOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+          }
+          if (iconClose) {
+            iconClose.style.opacity = menuOpen ? '1' : '0';
+            iconClose.style.transform = menuOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+          }
+        });
 
-      // Set initial icon state
-      updateIcons();
+        updateIcons();
+      }
+
+      document.addEventListener('astro:page-load', bindPage);
     </script>
   </body>
 </html>

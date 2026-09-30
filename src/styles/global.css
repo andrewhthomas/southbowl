@@ -52,6 +52,13 @@ body {
   --color-ring: #be123c;
 }
 
+/* Cross-fade between pages faster than the browser default, so router
+   navigation reads as instant rather than animated. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.12s;
+}
+
 /* SVG chart colors adapt to theme */
 .light .chart-bar { fill: #be123c; }
 .light .chart-text { fill: #09090b; }

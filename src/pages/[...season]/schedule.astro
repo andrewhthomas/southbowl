@@ -54,7 +54,7 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
     </button>
   </div>
 
-  <div id="weeks-container" class="space-y-6">
+  <div id="weeks-container" class="space-y-6" data-default-week={defaultWeek}>
     {weeks.map((week) => {
       const allFuture = isWeekFuture(week);
       return (
@@ -133,40 +133,51 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
     })}
   </div>
 
-  <script define:vars={{ defaultWeek }}>
-    const select = document.getElementById('week-select');
-    const showAllBtn = document.getElementById('show-all-btn');
-    const cards = document.querySelectorAll('.week-card');
-    let showingAll = false;
+  <!-- A bundled module rather than define:vars: the router keys inline scripts by their
+       text and skips ones it has already run, and two seasons can share a defaultWeek.
+       The default week rides along on the container instead. -->
+  <script>
+    function bindSchedule() {
+      const container = document.getElementById('weeks-container');
+      if (!container) return; // fires on every page once loaded, not just this one
 
-    function showWeek(weekNum) {
-      cards.forEach(card => {
-        card.style.display = Number(card.dataset.week) === weekNum ? '' : 'none';
+      const select = document.getElementById('week-select') as HTMLSelectElement | null;
+      const showAllBtn = document.getElementById('show-all-btn');
+      const cards = container.querySelectorAll<HTMLElement>('.week-card');
+      const defaultWeek = Number(container.dataset.defaultWeek);
+      let showingAll = false;
+
+      function showWeek(weekNum: number) {
+        cards.forEach(card => {
+          card.style.display = Number(card.dataset.week) === weekNum ? '' : 'none';
+        });
+      }
+
+      function showAll() {
+        cards.forEach(card => { card.style.display = ''; });
+      }
+
+      // Default: show only the selected week
+      showWeek(defaultWeek);
+
+      select?.addEventListener('change', () => {
+        showingAll = false;
+        if (showAllBtn) showAllBtn.textContent = 'Show All';
+        showWeek(Number(select.value));
+      });
+
+      showAllBtn?.addEventListener('click', () => {
+        showingAll = !showingAll;
+        if (showingAll) {
+          showAll();
+          showAllBtn.textContent = 'Show One';
+        } else {
+          showWeek(Number(select?.value));
+          showAllBtn.textContent = 'Show All';
+        }
       });
     }
 
-    function showAll() {
-      cards.forEach(card => { card.style.display = ''; });
-    }
-
-    // Default: show only the selected week
-    showWeek(defaultWeek);
-
-    select.addEventListener('change', () => {
-      showingAll = false;
-      showAllBtn.textContent = 'Show All';
-      showWeek(Number(select.value));
-    });
-
-    showAllBtn.addEventListener('click', () => {
-      showingAll = !showingAll;
-      if (showingAll) {
-        showAll();
-        showAllBtn.textContent = 'Show One';
-      } else {
-        showWeek(Number(select.value));
-        showAllBtn.textContent = 'Show All';
-      }
-    });
+    document.addEventListener('astro:page-load', bindSchedule);
   </script>
 </Layout>
