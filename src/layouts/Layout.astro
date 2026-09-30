@@ -22,7 +22,10 @@ const href = (path: string) => seasonHref(season, path);
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="viewport" content="width=device-width" />
+    <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to anything.
+         No apple-mobile-web-app-status-bar-style: the default leaves the status bar
+         opaque and tinted from theme-color, which stays readable in both themes. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <!-- Kept in sync with the active theme by applyTheme() below -->
     <meta name="theme-color" content="#09090b" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -56,7 +59,7 @@ const href = (path: string) => seasonHref(season, path);
   </head>
   <body class="min-h-screen bg-background text-foreground">
     <!-- Mobile header -->
-    <header class="lg:hidden border-b border-border bg-card px-4 py-3">
+    <header class="lg:hidden border-b border-border bg-card px-4 py-3 safe-x">
       <div class="flex items-center justify-between">
         <div class="min-w-0">
           <a href={href('/')}>
@@ -164,7 +167,7 @@ const href = (path: string) => seasonHref(season, path);
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 min-h-screen">
+      <main class="flex-1 min-h-screen safe-x">
         <div class="p-4 lg:p-8 max-w-7xl">
           {!season.isCurrent && (
             <div class="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm">
