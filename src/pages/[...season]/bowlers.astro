@@ -16,5 +16,5 @@ const { season } = Astro.props;
 
 <Layout season={season} title="Bowlers" activeNav="/bowlers">
   <h2 class="text-2xl font-bold mb-6">Bowler List</h2>
-  <BowlerTable client:load bowlers={season.bowlers} base={season.base} />
+  <BowlerTable client:load bowlers={season.bowlers} base={season.base} trends={season.trends} />
 </Layout>

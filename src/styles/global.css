@@ -93,8 +93,22 @@ body {
   animation-duration: 0.12s;
 }
 
-/* SVG chart colors adapt to theme */
+/* SVG chart colors adapt to theme. Charts set these as classes rather than
+   fill/stroke attributes so the light overrides below can win. */
+.chart-bar { fill: #e11d48; }
+.chart-bar-absent { fill: #3f3f46; }
+.chart-text { fill: #fafafa; }
+.chart-muted { fill: #a1a1aa; }
+.chart-grid { stroke: #27272a; }
+.chart-line { stroke: #22c55e; }
+.chart-dot { fill: #22c55e; }
+.chart-dot-absent { fill: #3f3f46; stroke: #71717a; }
+
 .light .chart-bar { fill: #be123c; }
+.light .chart-bar-absent { fill: #d4d4d8; }
 .light .chart-text { fill: #09090b; }
 .light .chart-muted { fill: #71717a; }
 .light .chart-grid { stroke: #e4e4e7; }
+.light .chart-line { stroke: #16a34a; }
+.light .chart-dot { fill: #16a34a; }
+.light .chart-dot-absent { fill: #d4d4d8; stroke: #71717a; }

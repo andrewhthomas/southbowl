@@ -1,11 +1,53 @@
 import { useMemo, useState } from 'react';
 import type { Bowler } from '../data/types';
-import { cn, toSlug } from '../lib/utils';
+import { cn, normalizedSlug, toSlug } from '../lib/utils';
 
 interface Props {
   bowlers: Bowler[];
   /** Season URL prefix: "" for the current season, "/<id>" for an archived one. */
   base: string;
+  /** Series per week, keyed by normalizedSlug of the bowler's name. */
+  trends: Record<string, number[]>;
+}
+
+/** Series by week as a bare line: shape over precision, exact numbers are on the profile. */
+function Sparkline({ values }: { values: number[] }) {
+  if (values.length < 2) return <span className="text-muted-foreground">--</span>;
+
+  const width = 64;
+  const height = 20;
+  const pad = 2;
+  const low = Math.min(...values);
+  const range = Math.max(...values) - low || 1;
+  const points = values
+    .map((value, i) => {
+      const x = pad + (i / (values.length - 1)) * (width - pad * 2);
+      const y = pad + (1 - (value - low) / range) * (height - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      className="inline-block align-middle"
+      role="img"
+      aria-label={`Series by week: ${values.join(', ')}`}
+    >
+      <polyline
+        points={points}
+        fill="none"
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        className={
+          values[values.length - 1] >= values[0] ? 'stroke-green-500' : 'stroke-muted-foreground'
+        }
+      />
+    </svg>
+  );
 }
 
 type SortKey = keyof Pick<
@@ -55,7 +97,7 @@ const profileIcon = (
   </svg>
 );
 
-export default function BowlerTable({ bowlers, base }: Props) {
+export default function BowlerTable({ bowlers, base, trends }: Props) {
   const [query, setQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('average');
   const [descending, setDescending] = useState(true);
@@ -147,6 +189,7 @@ export default function BowlerTable({ bowlers, base }: Props) {
                       </th>
                     );
                   })}
+                  <th className="px-4 py-3 text-right font-medium">Trend</th>
                 </tr>
               </thead>
               <tbody>
@@ -182,6 +225,9 @@ export default function BowlerTable({ bowlers, base }: Props) {
                     <td className="px-4 py-3 text-right font-mono text-muted-foreground">
                       {b.handicap}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <Sparkline values={trends[normalizedSlug(b.name)] ?? []} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -209,7 +255,10 @@ export default function BowlerTable({ bowlers, base }: Props) {
                     {b.average} avg
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground mb-2">{b.team}</p>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <p className="text-xs text-muted-foreground">{b.team}</p>
+                  <Sparkline values={trends[normalizedSlug(b.name)] ?? []} />
+                </div>
                 <div className="grid grid-cols-4 gap-2 text-xs">
                   <div>
                     <span className="text-muted-foreground block">Gm</span>
