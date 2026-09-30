@@ -2,7 +2,7 @@
 // visited once should still open with no connection at all.
 //
 // Bump CACHE when the strategies below change; old caches are dropped on activate.
-const CACHE = 'southbowl-v1';
+const CACHE = 'southbowl-v2';
 
 // Stable unhashed routes for the current season: the shell worth having before
 // the first visit to each page.
@@ -43,15 +43,21 @@ self.addEventListener('fetch', event => {
   }
 
   // Pages: try the network first so a newly added week shows up right away.
-  // Keyed by pathname, so ?week=3 and ?week=4 share one cached page.
   if (request.mode === 'navigate' || !/\.[a-z0-9]+$/i.test(url.pathname)) {
-    event.respondWith(networkFirst(request, new Request(url.pathname)));
+    event.respondWith(networkFirst(request, pageKey(url)));
     return;
   }
 
   // Icons, the manifest, anything else static.
   event.respondWith(cacheFirst(request, request));
 });
+
+// One cache entry per page regardless of how it was reached: "/standings",
+// "/standings/" and "/schedule?week=3" each collapse to one key. Without this,
+// a link to the un-slashed form misses the cached page and falls back offline.
+function pageKey(url) {
+  return new Request(url.origin + (url.pathname.replace(/\/+$/, '') || '/'));
+}
 
 async function cacheFirst(request, key) {
   const cache = await caches.open(CACHE);
