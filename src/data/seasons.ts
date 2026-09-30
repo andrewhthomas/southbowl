@@ -1,4 +1,5 @@
 import type { Bowler, SeasonData, WeekRecap, WeekResult } from "./types";
+import { normalizedSlug } from "../lib/utils";
 import winter2026 from "./seasons/winter-2026";
 import fall2025 from "./seasons/fall-2025";
 import fall2026 from "./seasons/fall-2026";
@@ -29,6 +30,7 @@ export interface Season extends SeasonData {
   isCurrent: boolean;
   topBowlers: ReturnType<typeof computeTopBowlers>;
   playoffs: ReturnType<typeof computePlayoffs>;
+  trends: ReturnType<typeof computeTrends>;
 }
 
 export const seasons: Season[] = seasonData.map((s, i) => ({
@@ -37,6 +39,7 @@ export const seasons: Season[] = seasonData.map((s, i) => ({
   isCurrent: i === 0,
   topBowlers: computeTopBowlers(s.bowlers, s.schedule),
   playoffs: computePlayoffs(s.weekRecaps),
+  trends: computeTrends(s.weekRecaps),
 }));
 
 export const currentSeason = seasons[0];
@@ -90,6 +93,31 @@ function roundTitle(matches: number): string {
   return `Round of ${matches * 2}`;
 }
 
+// Series total per week for each bowler, for the sparklines on the bowler list.
+// Absent weeks are skipped so the line only plots games actually bowled. Keyed by
+// normalizedSlug, since recaps say "First Last" where a league list may say "Last, First".
+function computeTrends(weekRecaps: WeekRecap[]): Record<string, number[]> {
+  const byBowler = new Map<string, { week: number; total: number }[]>();
+
+  for (const recap of weekRecaps) {
+    for (const match of recap.matches) {
+      for (const b of [...match.team1.bowlers, ...match.team2.bowlers]) {
+        if (b.games.every(g => g === null)) continue; // absent, or a sub bowled
+        const key = normalizedSlug(b.name);
+        const weeks = byBowler.get(key) ?? [];
+        weeks.push({ week: recap.week, total: b.total });
+        byBowler.set(key, weeks);
+      }
+    }
+  }
+
+  const trends: Record<string, number[]> = {};
+  for (const [key, weeks] of byBowler) {
+    trends[key] = weeks.sort((a, b) => a.week - b.week).map(w => w.total);
+  }
+  return trends;
+}
+
 function computeTopBowlers(bowlers: Bowler[], schedule: WeekResult[]) {
   // 9 games to qualify, or every game so far early in the season
   const minGames = Math.min(9, 3 * weeksBowled(schedule));
@@ -113,11 +141,12 @@ function computeTopBowlers(bowlers: Bowler[], schedule: WeekResult[]) {
   };
 }
 
+// `short` is what the mobile tab bar shows, where six labels share the screen width.
 export const navItems = [
-  { label: "Dashboard", href: "/" },
-  { label: "Schedule", href: "/schedule" },
-  { label: "Standings", href: "/standings" },
-  { label: "Teams", href: "/teams" },
-  { label: "Bowlers", href: "/bowlers" },
-  { label: "Statistics", href: "/statistics" },
+  { label: "Dashboard", short: "Home", href: "/" },
+  { label: "Schedule", short: "Schedule", href: "/schedule" },
+  { label: "Standings", short: "Standings", href: "/standings" },
+  { label: "Teams", short: "Teams", href: "/teams" },
+  { label: "Bowlers", short: "Bowlers", href: "/bowlers" },
+  { label: "Statistics", short: "Stats", href: "/statistics" },
 ];

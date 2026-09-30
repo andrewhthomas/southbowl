@@ -4,8 +4,9 @@
 	"name": "southbowl",
 	"main": "@astrojs/cloudflare/entrypoints/server",
 	"assets": {
-		"directory": "./dist",
-		"binding": "ASSETS"
+		"directory": "./dist/client",
+		"binding": "ASSETS",
+		"html_handling": "drop-trailing-slash"
 	},
 	"observability": {
 		"enabled": true

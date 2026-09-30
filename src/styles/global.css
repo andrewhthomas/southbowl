@@ -52,8 +52,75 @@ body {
   --color-ring: #be123c;
 }
 
-/* SVG chart colors adapt to theme */
+/* Display cutouts and the home indicator. These resolve to 0 in an ordinary
+   browser window, so they only take effect where there is something to clear.
+
+   .safe-x sets padding outright, and these rules load after Tailwind, so it
+   WINS over a px-* utility on the same element and flattens the gutter to 0.
+   Use it only on elements with no horizontal padding of their own; where an
+   element needs a gutter too, use .px-safe. */
+.safe-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Standard 1rem gutter, plus the cutout when there is one. Matches the p-4 on
+   the main content so the header lines up with the page below it. */
+.px-safe {
+  padding-left: calc(1rem + env(safe-area-inset-left));
+  padding-right: calc(1rem + env(safe-area-inset-right));
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Keep page content clear of the fixed mobile tab bar */
+.pb-tabbar {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .pb-tabbar {
+    padding-bottom: 2rem;
+  }
+}
+
+/* Installed-app polish: no rubber-band scroll exposing the page background, and
+   no grey flash on tap. Scoped to standalone so browser tabs keep pull-to-refresh. */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Cross-fade between pages faster than the browser default, so router
+   navigation reads as instant rather than animated. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.12s;
+}
+
+/* SVG chart colors adapt to theme. Charts set these as classes rather than
+   fill/stroke attributes so the light overrides below can win. */
+.chart-bar { fill: #e11d48; }
+.chart-bar-absent { fill: #3f3f46; }
+.chart-text { fill: #fafafa; }
+.chart-muted { fill: #a1a1aa; }
+.chart-grid { stroke: #27272a; }
+.chart-line { stroke: #22c55e; }
+.chart-dot { fill: #22c55e; }
+.chart-dot-absent { fill: #3f3f46; stroke: #71717a; }
+
 .light .chart-bar { fill: #be123c; }
+.light .chart-bar-absent { fill: #d4d4d8; }
 .light .chart-text { fill: #09090b; }
 .light .chart-muted { fill: #71717a; }
 .light .chart-grid { stroke: #e4e4e7; }
+.light .chart-line { stroke: #16a34a; }
+.light .chart-dot { fill: #16a34a; }
+.light .chart-dot-absent { fill: #d4d4d8; stroke: #71717a; }

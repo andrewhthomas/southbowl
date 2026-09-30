@@ -54,7 +54,7 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
     </button>
   </div>
 
-  <div id="weeks-container" class="space-y-6">
+  <div id="weeks-container" class="space-y-6" data-default-week={defaultWeek}>
     {weeks.map((week) => {
       const allFuture = isWeekFuture(week);
       return (
@@ -133,40 +133,74 @@ const defaultWeek = nextUpcoming?.week ?? weeks[weeks.length - 1].week;
     })}
   </div>
 
-  <script define:vars={{ defaultWeek }}>
-    const select = document.getElementById('week-select');
-    const showAllBtn = document.getElementById('show-all-btn');
-    const cards = document.querySelectorAll('.week-card');
-    let showingAll = false;
+  <!-- The visible week lives in ?week=, so a given week is linkable and the back
+       button walks through the ones you looked at. A bundled module rather than
+       define:vars: the router keys inline scripts by their text and skips ones it
+       has already run, and two seasons can share a defaultWeek. -->
+  <script>
+    type Parts = {
+      container: HTMLElement;
+      cards: HTMLElement[];
+      select: HTMLSelectElement | null;
+      showAllBtn: HTMLElement | null;
+      defaultWeek: number;
+    };
 
-    function showWeek(weekNum) {
-      cards.forEach(card => {
-        card.style.display = Number(card.dataset.week) === weekNum ? '' : 'none';
+    // Queried fresh every time: the router replaces these nodes on each navigation.
+    function parts(): Parts | null {
+      const container = document.getElementById('weeks-container');
+      if (!container) return null; // fires on every page once loaded, not just this one
+      return {
+        container,
+        cards: Array.from(container.querySelectorAll<HTMLElement>('.week-card')),
+        select: document.getElementById('week-select') as HTMLSelectElement | null,
+        showAllBtn: document.getElementById('show-all-btn'),
+        defaultWeek: Number(container.dataset.defaultWeek),
+      };
+    }
+
+    function weekFromUrl(p: Parts): string {
+      const param = new URLSearchParams(location.search).get('week');
+      if (param === 'all') return 'all';
+      const known = p.cards.some(card => card.dataset.week === param);
+      return known && param ? param : String(p.defaultWeek);
+    }
+
+    function render() {
+      const p = parts();
+      if (!p) return;
+
+      const value = weekFromUrl(p);
+      const all = value === 'all';
+      p.cards.forEach(card => {
+        card.style.display = all || card.dataset.week === value ? '' : 'none';
       });
+      if (p.select && !all) p.select.value = value;
+      if (p.showAllBtn) p.showAllBtn.textContent = all ? 'Show One' : 'Show All';
     }
 
-    function showAll() {
-      cards.forEach(card => { card.style.display = ''; });
+    function setWeek(value: string) {
+      const url = new URL(location.href);
+      url.searchParams.set('week', value);
+      history.pushState({}, '', url);
+      render();
     }
 
-    // Default: show only the selected week
-    showWeek(defaultWeek);
+    function bindSchedule() {
+      const p = parts();
+      if (!p) return;
 
-    select.addEventListener('change', () => {
-      showingAll = false;
-      showAllBtn.textContent = 'Show All';
-      showWeek(Number(select.value));
-    });
+      p.select?.addEventListener('change', () => setWeek(p.select!.value));
+      p.showAllBtn?.addEventListener('click', () => {
+        const showingAll = weekFromUrl(p) === 'all';
+        setWeek(showingAll ? (p.select?.value ?? String(p.defaultWeek)) : 'all');
+      });
 
-    showAllBtn.addEventListener('click', () => {
-      showingAll = !showingAll;
-      if (showingAll) {
-        showAll();
-        showAllBtn.textContent = 'Show One';
-      } else {
-        showWeek(Number(select.value));
-        showAllBtn.textContent = 'Show All';
-      }
-    });
+      render();
+    }
+
+    document.addEventListener('astro:page-load', bindSchedule);
+    // Registered once at module scope; render() re-reads the DOM each time.
+    window.addEventListener('popstate', render);
   </script>
 </Layout>

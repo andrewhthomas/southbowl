@@ -1,7 +1,10 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import SeasonPicker from '../components/SeasonPicker.astro';
-import { currentSeason, navItems, seasonHref, type Season } from '../data/seasons';
+import { currentSeason, navItems, seasons, seasonHref, type Season } from '../data/seasons';
+import CommandPalette, { type PaletteItem } from '../components/CommandPalette';
+import { navIcons, toSlug } from '../lib/utils';
 
 interface Props {
   season: Season;
@@ -13,25 +16,77 @@ const { season, activeNav = '/' } = Astro.props;
 const { league } = season;
 const title = Astro.props.title ?? league.name;
 const href = (path: string) => seasonHref(season, path);
+
+// Everything the command palette can jump to, flattened at build time so the
+// island ships labels and URLs rather than the whole season.
+const paletteItems: PaletteItem[] = [
+  ...navItems.map(item => ({ group: 'Pages', label: item.label, href: href(item.href) })),
+  ...season.bowlers.map(b => ({
+    group: 'Bowlers',
+    label: b.name,
+    sub: b.team,
+    href: href(`/bowlers/${toSlug(b.name)}`),
+  })),
+  ...season.standings.map(t => ({
+    group: 'Teams',
+    label: t.name,
+    sub: `#${t.num}`,
+    href: href(`/teams#team-${t.num}`),
+  })),
+  ...season.weekRecaps.map(r => ({
+    group: 'Weeks',
+    label: `Week ${r.week}`,
+    sub: r.date,
+    href: href(`/recaps/${r.week}`),
+  })),
+  ...seasons.map(s => ({ group: 'Seasons', label: s.label, href: seasonHref(s, activeNav) })),
+];
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to anything.
+         No apple-mobile-web-app-status-bar-style: the default leaves the status bar
+         opaque and tinted from theme-color, which stays readable in both themes. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Kept in sync with the active theme by applyTheme() below -->
+    <meta name="theme-color" content="#09090b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Southbowl" />
     <title>{title}{!season.isCurrent && ` (${season.label})`} | {league.center}</title>
-    <!-- Prevent flash: apply theme before paint -->
+    <ClientRouter />
+    <!-- Prevent flash: apply the theme before paint, and again after every view
+         transition, since the swap copies <html> attributes from the incoming
+         page and would drop the .light class. This script is identical on every
+         page, so the router never re-runs it and the listener is added once. -->
     <script is:inline>
       (function() {
-        const theme = localStorage.getItem('theme') || 'dark';
-        if (theme === 'light') document.documentElement.classList.add('light');
+        function applyTheme() {
+          const light = (localStorage.getItem('theme') || 'dark') === 'light';
+          document.documentElement.classList.toggle('light', light);
+          // Matches the installed app's status bar to the theme
+          document.querySelector('meta[name="theme-color"]')
+            ?.setAttribute('content', light ? '#fafafa' : '#09090b');
+        }
+        applyTheme();
+        document.addEventListener('astro:after-swap', applyTheme);
       })();
+    </script>
+    <script>
+      // Runs once: registering an already-registered worker is a no-op anyway.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
     </script>
   </head>
   <body class="min-h-screen bg-background text-foreground">
     <!-- Mobile header -->
-    <header class="lg:hidden border-b border-border bg-card px-4 py-3">
+    <header class="lg:hidden border-b border-border bg-card py-3 px-safe">
       <div class="flex items-center justify-between">
         <div class="min-w-0">
           <a href={href('/')}>
@@ -40,6 +95,12 @@ const href = (path: string) => seasonHref(season, path);
           <SeasonPicker season={season} activeNav={activeNav} compact />
         </div>
         <div class="flex items-center gap-1">
+          <button id="palette-open-mobile" class="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" aria-label="Search">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <path stroke-linecap="round" d="m21 21-4.3-4.3" />
+            </svg>
+          </button>
           <button id="theme-toggle-mobile" class="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" aria-label="Toggle theme">
             <!-- Sun icon (shown in dark mode) -->
             <svg class="w-5 h-5 theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,35 +111,8 @@ const href = (path: string) => seasonHref(season, path);
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
           </button>
-          <button id="mobile-menu-btn" class="relative p-2 rounded-md hover:bg-secondary w-10 h-10" aria-label="Toggle menu">
-            <svg class="w-6 h-6 menu-icon-open absolute inset-2 transition-all duration-300 ease-in-out opacity-100 rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg class="w-6 h-6 menu-icon-close absolute inset-2 transition-all duration-300 ease-in-out opacity-0 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
       </div>
-      <nav id="mobile-menu" class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out mt-3 pt-3 border-t border-border">
-        <ul class="space-y-1 overflow-hidden">
-          {navItems.map(item => (
-            <li>
-              <a
-                href={href(item.href)}
-                class:list={[
-                  'block px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                  activeNav === item.href
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
-                ]}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
     </header>
 
     <div class="flex">
@@ -99,6 +133,17 @@ const href = (path: string) => seasonHref(season, path);
           <div class="mt-3">
             <SeasonPicker season={season} activeNav={activeNav} />
           </div>
+          <button
+            id="palette-open-desktop"
+            class="mt-3 w-full flex items-center gap-2 bg-secondary border border-border rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <path stroke-linecap="round" d="m21 21-4.3-4.3" />
+            </svg>
+            <span class="flex-1 text-left">Search</span>
+            <kbd class="text-[10px] border border-border rounded px-1 py-0.5">&#8984;K</kbd>
+          </button>
           <div class="mt-3 space-y-1 text-xs text-muted-foreground">
             <p>{league.address}</p>
             <p>{league.phone}</p>
@@ -112,6 +157,7 @@ const href = (path: string) => seasonHref(season, path);
               <li>
                 <a
                   href={href(item.href)}
+                  data-astro-prefetch="viewport"
                   class:list={[
                     'block px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
                     activeNav === item.href
@@ -137,8 +183,11 @@ const href = (path: string) => seasonHref(season, path);
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 min-h-screen">
-        <div class="p-4 lg:p-8 max-w-7xl">
+      <!-- min-w-0: as a flex item this defaults to min-width:auto, which refuses to
+           shrink below the widest thing inside it. Without it a wide table pushes the
+           whole page sideways instead of scrolling inside its own overflow-x-auto box. -->
+      <main class="flex-1 min-w-0 min-h-screen safe-x">
+        <div class="p-4 lg:p-8 max-w-7xl pb-tabbar">
           {!season.isCurrent && (
             <div class="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm">
               <p class="text-muted-foreground">
@@ -154,6 +203,35 @@ const href = (path: string) => seasonHref(season, path);
       </main>
     </div>
 
+    <CommandPalette client:idle items={paletteItems} />
+
+    <!-- Mobile tab bar: every section one tap away, the way an app does it -->
+    <nav
+      class="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur-sm safe-x safe-bottom"
+      aria-label="Sections"
+    >
+      <ul class="grid grid-cols-6">
+        {navItems.map(item => (
+          <li>
+            <a
+              href={href(item.href)}
+              data-astro-prefetch="viewport"
+              aria-current={activeNav === item.href ? 'page' : undefined}
+              class:list={[
+                'flex flex-col items-center gap-0.5 px-0.5 pt-2 pb-1.5 text-[10px] font-medium transition-colors',
+                activeNav === item.href
+                  ? 'text-primary'
+                  : 'text-muted-foreground active:text-foreground',
+              ]}
+            >
+              <Fragment set:html={navIcons[item.href]} />
+              <span class="w-full truncate text-center">{item.short}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
     <script>
       function updateIcons() {
         const isLight = document.documentElement.classList.contains('light');
@@ -168,34 +246,26 @@ const href = (path: string) => seasonHref(season, path);
       function toggleTheme() {
         const isLight = document.documentElement.classList.toggle('light');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        document.querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', isLight ? '#fafafa' : '#09090b');
         updateIcons();
       }
 
-      document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
-      document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
+      // Bundled module scripts run once, so every listener on an element has to be
+      // re-attached after the router swaps in a new page. astro:page-load fires on
+      // the first load and after each navigation.
+      function bindPage() {
+        document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
+        document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
 
-      const btn = document.getElementById('mobile-menu-btn');
-      const menu = document.getElementById('mobile-menu');
-      const iconOpen = btn?.querySelector('.menu-icon-open') as HTMLElement | null;
-      const iconClose = btn?.querySelector('.menu-icon-close') as HTMLElement | null;
-      let menuOpen = false;
-      btn?.addEventListener('click', () => {
-        menuOpen = !menuOpen;
-        if (menu) {
-          menu.style.gridTemplateRows = menuOpen ? '1fr' : '0fr';
-        }
-        if (iconOpen) {
-          iconOpen.style.opacity = menuOpen ? '0' : '1';
-          iconOpen.style.transform = menuOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
-        }
-        if (iconClose) {
-          iconClose.style.opacity = menuOpen ? '1' : '0';
-          iconClose.style.transform = menuOpen ? 'rotate(0deg)' : 'rotate(90deg)';
-        }
-      });
+        const openPalette = () => document.dispatchEvent(new CustomEvent('palette:open'));
+        document.getElementById('palette-open-desktop')?.addEventListener('click', openPalette);
+        document.getElementById('palette-open-mobile')?.addEventListener('click', openPalette);
 
-      // Set initial icon state
-      updateIcons();
+        updateIcons();
+      }
+
+      document.addEventListener('astro:page-load', bindPage);
     </script>
   </body>
 </html>
