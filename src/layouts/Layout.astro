@@ -20,7 +20,14 @@ const href = (path: string) => seasonHref(season, path);
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="viewport" content="width=device-width" />
+    <!-- Kept in sync with the active theme by applyTheme() below -->
+    <meta name="theme-color" content="#09090b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Southbowl" />
     <title>{title}{!season.isCurrent && ` (${season.label})`} | {league.center}</title>
     <ClientRouter />
     <!-- Prevent flash: apply the theme before paint, and again after every view
@@ -30,12 +37,21 @@ const href = (path: string) => seasonHref(season, path);
     <script is:inline>
       (function() {
         function applyTheme() {
-          const theme = localStorage.getItem('theme') || 'dark';
-          document.documentElement.classList.toggle('light', theme === 'light');
+          const light = (localStorage.getItem('theme') || 'dark') === 'light';
+          document.documentElement.classList.toggle('light', light);
+          // Matches the installed app's status bar to the theme
+          document.querySelector('meta[name="theme-color"]')
+            ?.setAttribute('content', light ? '#fafafa' : '#09090b');
         }
         applyTheme();
         document.addEventListener('astro:after-swap', applyTheme);
       })();
+    </script>
+    <script>
+      // Runs once: registering an already-registered worker is a no-op anyway.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
     </script>
   </head>
   <body class="min-h-screen bg-background text-foreground">
@@ -179,6 +195,8 @@ const href = (path: string) => seasonHref(season, path);
       function toggleTheme() {
         const isLight = document.documentElement.classList.toggle('light');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        document.querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', isLight ? '#fafafa' : '#09090b');
         updateIcons();
       }
 
