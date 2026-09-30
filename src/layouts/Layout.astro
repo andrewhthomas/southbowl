@@ -183,7 +183,10 @@ const paletteItems: PaletteItem[] = [
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 min-h-screen safe-x">
+      <!-- min-w-0: as a flex item this defaults to min-width:auto, which refuses to
+           shrink below the widest thing inside it. Without it a wide table pushes the
+           whole page sideways instead of scrolling inside its own overflow-x-auto box. -->
+      <main class="flex-1 min-w-0 min-h-screen safe-x">
         <div class="p-4 lg:p-8 max-w-7xl pb-tabbar">
           {!season.isCurrent && (
             <div class="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm">

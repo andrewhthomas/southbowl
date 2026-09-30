@@ -194,30 +194,31 @@ for (let i = 0; i <= yTickCount; i++) {
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-border text-muted-foreground text-xs uppercase">
-          <th class="text-left px-4 py-2">Week</th>
-          <th class="text-left px-4 py-2">Date</th>
-          <th class="text-center px-4 py-2">Game 1</th>
-          <th class="text-center px-4 py-2">Game 2</th>
-          <th class="text-center px-4 py-2">Game 3</th>
-          <th class="text-right px-4 py-2">Series</th>
+          <th class="text-left px-2 sm:px-4 py-2">Week</th>
+          <th class="text-left px-2 sm:px-4 py-2">Date</th>
+          {[1, 2, 3].map(n => (
+            <th class="text-center px-2 sm:px-4 py-2 whitespace-nowrap">
+              <span class="sm:hidden">G{n}</span><span class="hidden sm:inline">Game {n}</span>
+            </th>
+          ))}
+          <th class="text-right px-2 sm:px-4 py-2">Series</th>
         </tr>
       </thead>
       <tbody>
         {weeks.map((w) => (
           <tr class:list={["border-b border-border/50", w.absent && "opacity-50"]}>
-            <td class="px-4 py-2 font-mono">{w.week}</td>
-            <td class="px-4 py-2 text-muted-foreground">{w.date}</td>
-            <td class="px-4 py-2 text-center font-mono">
-              {w.games[0] !== null ? w.games[0] : <span class="text-muted-foreground italic">abs</span>}
+            <td class="px-2 sm:px-4 py-2 font-mono">{w.week}</td>
+            <td class="px-2 sm:px-4 py-2 text-muted-foreground whitespace-nowrap">
+              {/* The year is the same on every row, so it only earns its width on wider screens */}
+              <span class="sm:hidden">{w.date.slice(0, 5)}</span><span class="hidden sm:inline">{w.date}</span>
             </td>
-            <td class="px-4 py-2 text-center font-mono">
-              {w.games[1] !== null ? w.games[1] : <span class="text-muted-foreground italic">abs</span>}
-            </td>
-            <td class="px-4 py-2 text-center font-mono">
-              {w.games[2] !== null ? w.games[2] : <span class="text-muted-foreground italic">abs</span>}
-            </td>
-            <td class="px-4 py-2 text-right font-mono font-semibold">
-              {w.absent ? <span class="text-muted-foreground italic">absent</span> : w.total}
+            {[0, 1, 2].map(i => (
+              <td class="px-2 sm:px-4 py-2 text-center font-mono">
+                {w.games[i] !== null ? w.games[i] : <span class="text-muted-foreground italic">abs</span>}
+              </td>
+            ))}
+            <td class="px-2 sm:px-4 py-2 text-right font-mono font-semibold">
+              {w.absent ? <span class="text-muted-foreground italic">abs</span> : w.total}
             </td>
           </tr>
         ))}
