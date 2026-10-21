@@ -51,7 +51,7 @@ export default {
     day: "Thursday",
     time: "6:30 PM",
     startDate: "09/10/2026",
-    lastUpdated: "09/24/2026",
+    lastUpdated: "10/15/2026",
     totalWeeks: 15,
   },
   // Standings, bowler stats, rosters, and results are computed from the scoresheets
