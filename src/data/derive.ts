@@ -12,12 +12,15 @@ export function handicapFor(average: number): number {
   return Math.max(0, Math.floor((220 - average) * 0.9));
 }
 
-// Per-game absentee score for a row's null games, or 0 when those games were bowled by a sub
-export function absenteeScore(b: BowlerScore): number {
-  const bowled = b.games.filter((g): g is number => g !== null);
-  const missing = b.games.length - bowled.length;
-  if (missing === 0) return 0;
-  return Math.round((b.total - bowled.reduce((s, g) => s + g, 0)) / missing);
+// Absentee score for null game `i`, or 0 when a sub bowled that game
+export function absenteeScore(b: BowlerScore, i: number): number {
+  const missing = b.games.flatMap((g, k) => (g === null ? [k] : []));
+  if (!missing.includes(i)) return 0;
+  const owed = b.total - b.games.reduce<number>((s, g) => s + (g ?? 0), 0);
+  if (owed % missing.length === 0) return owed / missing.length;
+  // A late arrival: absentee games (average - 10) first, then a sub bowled the rest
+  const per = b.avg - 10;
+  return missing.indexOf(i) < owed / per ? per : 0;
 }
 
 function byWeek(recaps: WeekRecap[]): WeekRecap[] {

@@ -24,7 +24,7 @@ const week = recap.week;
 function gameDisplay(b: BowlerScore, i: number) {
   const g = b.games[i];
   if (g !== null) return { val: g.toString(), absent: false };
-  const a = absenteeScore(b);
+  const a = absenteeScore(b, i);
   return { val: a ? `a${a}` : '-', absent: true };
 }
 
